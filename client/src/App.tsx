@@ -1,18 +1,18 @@
 import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import MainPage from "./pages/MainPage";
+import CategoriesPage from "./pages/CategoriesPage";
+import ErrorPage from "./pages/ErrorPage";
 
-import Header from "./components/Header";
-import { categories } from "./components/Categories/cat";
-import Hero from "./components/Hero";
-import CategoriesSlider from "./components/Categories/CategoriesSlider";
-import Footer from "./components/Footer";
 function App() {
   return (
-    <>
-      <Header />
-      <Hero />
-      <CategoriesSlider categorie={categories} />
-      <Footer />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/Categories" element={<CategoriesPage />} />
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

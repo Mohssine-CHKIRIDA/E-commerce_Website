@@ -1,71 +1,30 @@
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+
 interface Props {
   rating: number;
   numReviews: number;
-  caption: string;
+  caption?: string;
 }
+
 const Rating = ({ rating, numReviews, caption }: Props) => {
+  const renderStar = (index: number) => {
+    if (rating >= index) {
+      return <FaStar />;
+    } else if (rating >= index - 0.5) {
+      return <FaStarHalfAlt />;
+    } else {
+      return <FaRegStar />;
+    }
+  };
+
   return (
-    <div className="rating">
-      <span>
-        <i
-          className={
-            rating >= 1
-              ? "fas fa-star"
-              : rating >= 0.5
-              ? "fas fa-star-half-alt"
-              : "far fa-star"
-          }
-        />
+    <div className="rating flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i}>{renderStar(i)}</span>
+      ))}
+      <span className="ml-2 text-sm">
+        {caption ? caption : `${numReviews} reviews`}
       </span>
-      <span>
-        <i
-          className={
-            rating >= 2
-              ? "fas fa-star"
-              : rating >= 1.5
-              ? "fas fa-star-half-alt"
-              : "far fa-star"
-          }
-        />
-      </span>
-      <span>
-        <i
-          className={
-            rating >= 3
-              ? "fas fa-star"
-              : rating >= 2.5
-              ? "fas fa-star-half-alt"
-              : "far fa-star"
-          }
-        />
-      </span>
-      <span>
-        <i
-          className={
-            rating >= 4
-              ? "fas fa-star"
-              : rating >= 3.5
-              ? "fas fa-star-half-alt"
-              : "far fa-star"
-          }
-        />
-      </span>
-      <span>
-        <i
-          className={
-            rating >= 5
-              ? "fas fa-star"
-              : rating >= 4.5
-              ? "fas fa-star-half-alt"
-              : "far fa-star"
-          }
-        />
-      </span>
-      {caption ? (
-        <span>{caption}</span>
-      ) : (
-        <span>{" " + numReviews + " reviews"}</span>
-      )}
     </div>
   );
 };
