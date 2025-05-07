@@ -1,14 +1,14 @@
+import CartPageIntern from "../components/Cart/Cart";
 import { CartProvider } from "../components/Cart/CartContext";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import ProductsListing from "../components/ProductsListing/ProductsListing";
 
-export default function CategoriesPage() {
+export default function CartPage() {
   return (
     <>
       <CartProvider>
         <Header />
-        <ProductsListing />
+        <CartPageIntern />
         <Footer />
       </CartProvider>
     </>

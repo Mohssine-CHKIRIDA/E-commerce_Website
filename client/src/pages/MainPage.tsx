@@ -1,6 +1,6 @@
 import Header from "../components/Header";
 import { categories } from "../components/Categories/cat";
-import Hero from "../components/Hero";
+import Hero from "../components/Promos/Hero";
 import CategoriesSlider from "../components/Categories/CategoriesSlider";
 import Footer from "../components/Footer";
 import BestSellingProduct from "../components/Products/BestSellingProduct";

@@ -1,7 +1,7 @@
-import HeroSlider from "./HeroPanles/HeroPanel";
-import CategoryMenu from "./Categories/Category";
-import { categories } from "./Categories/cat";
-import { slides } from "./HeroPanles/panels";
+import HeroSlider from "../HeroPanles/HeroPanel";
+import CategoryMenu from "../Categories/Category";
+import { categories } from "../Categories/cat";
+import { slides } from "../HeroPanles/panels";
 
 export default function Hero() {
   const onSelected = (item: string) => {
@@ -16,7 +16,6 @@ export default function Hero() {
           <CategoryMenu categories={categories} onSelected={onSelected} />
         </div>
 
-        {/* Hero Slider */}
         <div className="flex-1">
           <HeroSlider slides={slides} interval={3000} />
         </div>

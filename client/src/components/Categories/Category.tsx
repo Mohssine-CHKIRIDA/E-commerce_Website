@@ -48,7 +48,6 @@ export default function CategoryMenu({ categories, onSelected }: Props) {
                 <span>&gt;</span>
               </li>
 
-              {/* Submenu */}
               {hoveredIndex === index && cat.subcategories.length > 0 && (
                 <ul className="absolute left-full top-0 w-44 max-h-[300px] overflow-y-auto bg-white border-l border-gray-200 shadow-lg z-50 transition-all duration-200">
                   {cat.subcategories.map((sub) => (

@@ -50,7 +50,7 @@ export default function SubHero({ categorie, interval = 5000 }: Props) {
         </div>
 
         <a
-          href="/categories"
+          href="/products"
           className="group mt-4 md:mt-0 flex items-center text-indigo-600 font-medium"
         >
           View all categories
