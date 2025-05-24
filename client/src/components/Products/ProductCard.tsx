@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Rating from "./Rating";
 import { useCart } from "../Cart/CartContext";
 
@@ -5,6 +6,7 @@ export interface ProductProps {
   id: number;
   name: string;
   category: string;
+  subcategory: string;
   imageUrl: string;
   price: number;
   InStock: number;
@@ -33,42 +35,48 @@ export default function Product({ product }: CardProps) {
   };
 
   return (
-    <div className="w-full max-w-xs mx-auto border rounded-md bg-white hover:shadow-lg transition p-3 flex flex-col text-sm">
+    <div className="w-full max-w-xs mx-auto border rounded-md bg-white hover:shadow-lg transition p-3 flex flex-col text-sm relative">
       {product.rating >= 4.5 && (
-        <div className="absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-0.5 font-semibold rounded-sm shadow-sm">
+        <div className="absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-0.5 font-semibold rounded-sm shadow-sm z-10">
           Best Seller
         </div>
       )}
 
-      <div className="w-full aspect-[4/5] bg-white flex items-center justify-center overflow-hidden">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="max-h-full object-contain transition duration-300 group-hover:scale-105"
-        />
-      </div>
+      <Link
+        to={`/product/${product.id}`}
+        className="flex flex-col flex-grow group"
+      >
+        <div className="w-full aspect-[4/5] bg-white flex items-center justify-center overflow-hidden">
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="max-h-full object-contain transition duration-300 group-hover:scale-105"
+          />
+        </div>
 
-      <div className="mt-2 flex flex-col gap-1">
-        <h3 className="font-medium text-gray-800 leading-snug line-clamp-2">
-          {product.name}
-        </h3>
-        <p className="text-xs text-gray-500">
-          {product.brand} • {product.category}
-        </p>
+        <div className="mt-2 flex flex-col gap-1">
+          <h3 className="font-medium text-gray-800 leading-snug line-clamp-2">
+            {product.name}
+          </h3>
+          <p className="text-xs text-gray-500">
+            {product.brand} • {product.category}
+          </p>
 
-        <Rating rating={product.rating} numReviews={product.numReviews} />
+          <Rating rating={product.rating} numReviews={product.numReviews} />
 
-        <p className="text-lg font-bold text-red-600 mt-1">
-          ${product.price.toFixed(2)}
-        </p>
+          <p className="text-lg font-bold text-red-600 mt-1">
+            ${product.price.toFixed(2)}
+          </p>
 
-        {product.InStock > 0 ? (
-          <p className="text-xs text-green-600">In stock</p>
-        ) : (
-          <p className="text-xs text-red-600">Currently unavailable</p>
-        )}
-      </div>
+          {product.InStock > 0 ? (
+            <p className="text-xs text-green-600">In stock</p>
+          ) : (
+            <p className="text-xs text-red-600">Currently unavailable</p>
+          )}
+        </div>
+      </Link>
 
+      {/* Add to cart stays outside the link */}
       <button
         onClick={handleAddToCart}
         disabled={product.InStock <= 0}

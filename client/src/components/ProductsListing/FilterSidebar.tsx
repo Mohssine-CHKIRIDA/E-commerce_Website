@@ -1,8 +1,24 @@
+import { Link } from "react-router-dom";
+import { routes } from "../../Routing/Routing";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { useState } from "react";
+interface CategoryData {
+  id: number;
+  name: string;
+  icon: React.ElementType;
+  imageUrl: string;
+  subcategories: string[];
+  brands: string[]; // Ajout ici
+}
+
 interface FilterSidebarProps {
-  categories: string[];
+  categories: CategoryData[];
   brands: string[];
   activeCategory: string;
   setActiveCategory: (category: string) => void;
+  subcategories: string[]; // ➕
+  activeSubCategory: string; // ➕
+  setActiveSubCategory: (subcat: string) => void; // ➕
   activeBrands: string[];
   setActiveBrands: (brands: string[]) => void;
   priceRange: [number, number];
@@ -12,12 +28,13 @@ interface FilterSidebarProps {
   setMinRating: (rating: number) => void;
   onResetFilters: () => void;
 }
-
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   categories,
   brands,
   activeCategory,
   setActiveCategory,
+  activeSubCategory,
+  setActiveSubCategory,
   activeBrands,
   setActiveBrands,
   priceRange,
@@ -27,23 +44,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   setMinRating,
   onResetFilters,
 }) => {
-  const handleCategoryChange = (category: string) => {
-    setActiveCategory(category);
-  };
+  const [openSub, setOpenSub] = useState<string | null>(null);
 
   const handleBrandToggle = (brand: string) => {
     if (activeBrands.includes(brand)) {
       setActiveBrands(activeBrands.filter((b) => b !== brand));
     } else {
       setActiveBrands([...activeBrands, brand]);
-    }
-  };
-
-  const handlePriceChange = (value: number, isMax: boolean) => {
-    if (isMax) {
-      setPriceRange([priceRange[0], value]);
-    } else {
-      setPriceRange([value, priceRange[1]]);
     }
   };
 
@@ -55,30 +62,64 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       <fieldset className="mb-6">
         <legend className="font-medium mb-2">Categories</legend>
         <div className="flex flex-col space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="category"
-              checked={activeCategory === "All"}
-              onChange={() => handleCategoryChange("All")}
-              className="mr-2"
-              aria-label="All categories"
-            />
+          <Link
+            to={routes.all}
+            onClick={() => setActiveCategory("All")}
+            className={`block px-2 py-1 rounded hover:bg-gray-200 transition-colors ${
+              activeCategory === "All" ? "bg-blue-100 font-semibold" : ""
+            }`}
+          >
             All
-          </label>
-          {categories.map((category) => (
-            <label key={category} className="flex items-center">
-              <input
-                type="radio"
-                name="category"
-                checked={activeCategory === category}
-                onChange={() => handleCategoryChange(category)}
-                className="mr-2"
-                aria-label={category}
-              />
-              {category}
-            </label>
-          ))}
+          </Link>
+          {categories.map((cat) => {
+            const isOpen = openSub === cat.name;
+
+            return (
+              <div key={cat.name}>
+                <div className="flex justify-between items-center">
+                  <Link
+                    to={routes.category(cat.name)}
+                    onClick={() => setActiveCategory(cat.name)}
+                    className={`block px-2 py-1 rounded w-full hover:bg-gray-200 transition-colors ${
+                      activeCategory === cat.name
+                        ? "bg-blue-100 font-semibold"
+                        : ""
+                    }`}
+                  >
+                    {cat.name}
+                  </Link>
+                  <button
+                    className="ml-2 text-gray-500"
+                    onClick={() => setOpenSub(isOpen ? null : cat.name)}
+                  >
+                    {isOpen ? <FaChevronUp /> : <FaChevronDown />}
+                  </button>
+                </div>
+                {isOpen && cat.subcategories.length > 0 && (
+                  <ul className="ml-4 mt-1 space-y-1">
+                    {cat.subcategories.map((sub) => (
+                      <li key={sub}>
+                        <Link
+                          to={routes.subcategory(cat.name, sub)}
+                          onClick={() => {
+                            setActiveCategory(cat.name);
+                            setActiveSubCategory(sub);
+                          }}
+                          className={`block px-2 py-1 text-sm rounded ${
+                            activeSubCategory === sub
+                              ? "bg-blue-100 font-semibold"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          {sub}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       </fieldset>
 
@@ -93,7 +134,6 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 checked={activeBrands.includes(brand)}
                 onChange={() => handleBrandToggle(brand)}
                 className="mr-2"
-                aria-label={brand}
               />
               {brand}
             </label>
@@ -104,56 +144,44 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       {/* Price Range */}
       <fieldset className="mb-6">
         <legend className="font-medium mb-2">Price Range</legend>
-        <div className="flex items-center space-x-2 mb-2">
-          <span>${priceRange[0].toFixed(2)}</span>
-          <span>-</span>
-          <span>${priceRange[1].toFixed(2)}</span>
-        </div>
         <div className="space-y-2">
           <input
             type="range"
             min={0}
             max={maxPrice}
             value={priceRange[0]}
-            onChange={(e) => handlePriceChange(Number(e.target.value), false)}
-            className="w-full"
-            aria-label="Minimum price"
+            onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])}
           />
           <input
             type="range"
             min={0}
             max={maxPrice}
             value={priceRange[1]}
-            onChange={(e) => handlePriceChange(Number(e.target.value), true)}
-            className="w-full"
-            aria-label="Maximum price"
+            onChange={(e) => setPriceRange([priceRange[0], +e.target.value])}
           />
+          <div className="text-sm">
+            ${priceRange[0]} - ${priceRange[1]}
+          </div>
         </div>
       </fieldset>
 
-      {/* Minimum Rating */}
-      <fieldset>
+      {/* Rating */}
+      <fieldset className="mb-6">
         <legend className="font-medium mb-2">Minimum Rating</legend>
-        <div className="flex items-center space-x-2">
-          <input
-            type="range"
-            min={0}
-            max={5}
-            step={0.5}
-            value={minRating}
-            onChange={(e) => setMinRating(Number(e.target.value))}
-            className="w-full"
-            aria-label="Minimum rating"
-          />
-          <span>{minRating.toFixed(1)}★</span>
-        </div>
+        <input
+          type="range"
+          min={0}
+          max={5}
+          step={0.5}
+          value={minRating}
+          onChange={(e) => setMinRating(Number(e.target.value))}
+        />
+        <div className="text-sm">{minRating}★</div>
       </fieldset>
 
-      {/* Reset Filters */}
       <button
         onClick={onResetFilters}
         className="mt-4 text-sm text-blue-600 hover:underline"
-        aria-label="Reset all filters"
       >
         Reset Filters
       </button>

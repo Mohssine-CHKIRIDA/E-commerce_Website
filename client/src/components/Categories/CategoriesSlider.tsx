@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { HiArrowSmallRight, HiArrowSmallLeft } from "react-icons/hi2";
+import { Link } from "react-router-dom";
+import { routes } from "../../Routing/Routing";
 
 interface Cat {
   id: number;
@@ -65,25 +67,24 @@ export default function SubHero({ categorie, interval = 5000 }: Props) {
           }}
         >
           {categorie.map((cate) => (
-            <div
-              key={cate.id}
-              className="flex-shrink-0 w-[calc(100%/3)] p-4" // If you change visibleItems, change here too
-            >
-              <div className="bg-white rounded-lg overflow-hidden shadow-md h-full flex flex-col hover:scale-105 transition-transform">
-                <div className="h-48 w-full overflow-hidden">
-                  <img
-                    src={cate.imageUrl}
-                    alt={`cate ${cate.id}`}
-                    className="w-full h-full object-cover"
-                  />
+            <div key={cate.id} className="flex-shrink-0 w-[calc(100%/3)] p-4">
+              <Link to={routes.category(cate.name)}>
+                <div className="bg-white rounded-lg overflow-hidden shadow-md h-full flex flex-col hover:scale-105 transition-transform">
+                  <div className="h-48 w-full overflow-hidden">
+                    <img
+                      src={cate.imageUrl}
+                      alt={`cate ${cate.id}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <h3 className="text-xl font-bold mb-2">{cate.name}</h3>
+                    {cate.subtitle && (
+                      <p className="text-gray-600 text-sm">{cate.subtitle}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <h3 className="text-xl font-bold mb-2">{cate.name}</h3>
-                  {cate.subtitle && (
-                    <p className="text-gray-600 text-sm">{cate.subtitle}</p>
-                  )}
-                </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>
