@@ -1,3 +1,5 @@
+// schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,102 +9,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int      @id @default(autoincrement())
-  name          String
-  email         String   @unique
-  password      String
-  role          Role     @default(USER)
-  orders        Order[]
-  reviews       Review[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
 enum Role {
   USER
   ADMIN
-}
-
-model Product {
-  id           Int       @id @default(autoincrement())
-  name         String
-  description  String
-  price        Float
-  imageUrl     String
-  category     Category  @relation(fields: [categoryId], references: [id])
-  categoryId   Int
-  subcategory  String
-  brand        String
-  inStock      Int
-  rating       Float     @default(0)
-  numReviews   Int       @default(0)
-  reviews      Review[]
-  orderItems   OrderItem[]
-  colors       ProductColor[]
-  sizes        ProductSize[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model ProductColor {
-  id        Int      @id @default(autoincrement())
-  name      String
-  bgColor   String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId Int
-}
-
-model ProductSize {
-  id        Int      @id @default(autoincrement())
-  size      Int
-  product   Product  @relation(fields: [productId], references: [id])
-  productId Int
-}
-
-model Review {
-  id        Int      @id @default(autoincrement())
-  rating    Float
-  comment   String?
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  product   Product  @relation(fields: [productId], references: [id])
-  productId Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Order {
-  id            Int         @id @default(autoincrement())
-  user          User       @relation(fields: [userId], references: [id])
-  userId        Int
-  items         OrderItem[]
-  totalAmount   Float
-  status        OrderStatus @default(PENDING)
-  paymentIntent String?    // Stripe payment intent ID
-  paymentStatus PaymentStatus @default(PENDING)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-}
-
-model OrderItem {
-  id        Int      @id @default(autoincrement())
-  order     Order    @relation(fields: [orderId], references: [id])
-  orderId   Int
-  product   Product  @relation(fields: [productId], references: [id])
-  productId Int
-  quantity  Int
-  price     Float    // Price at time of purchase
-  color     String?
-  size      Int?
 }
 
 enum OrderStatus {
@@ -118,4 +27,151 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  password   String
+  role       Role      @default(USER)
+  phone      String?
+  birthdate  DateTime?
+  gender     String?
+  addresses  Address[]
+  payments   PaymentMethod[]
+  orders     Order[]
+  reviews    Review[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Address {
+  id         Int     @id @default(autoincrement())
+  type       String
+  name       String
+  address    String
+  city       String
+  isDefault  Boolean @default(false)
+  user       User    @relation(fields: [userId], references: [id])
+  userId     Int
+}
+
+model PaymentMethod {
+  id         Int     @id @default(autoincrement())
+  type       String
+  last4      String
+  expiry     String
+  isDefault  Boolean @default(false)
+  user       User    @relation(fields: [userId], references: [id])
+  userId     Int
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  subcategories Subcategory[]
+  brands        Brand[]       @relation("CategoryBrand")
+  products      Product[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+
+
+model Subcategory {
+  id         Int        @id @default(autoincrement())
+  name       String
+  category   Category   @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  products   Product[]
+}
+model Brand {
+  id         Int           @id @default(autoincrement())
+  name       String        @unique
+  categories Category[]    @relation("CategoryBrand")
+  products   Product[]
+}
+
+
+
+model Product {
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String
+  price         Float
+  imageUrl      String
+  category      Category       @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  subcategory   Subcategory    @relation(fields: [subcategoryId], references: [id])
+  subcategoryId Int
+  brand   Brand @relation(fields: [brandId], references: [id])
+  brandId Int
+  inStock       Int
+  rating        Float          @default(0)
+  numReviews    Int            @default(0)
+  reviews       Review[]
+  colors        ProductColor[]
+  sizes         ProductSize[]
+  orderItems    OrderItem[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ProductColor {
+  id        Int     @id @default(autoincrement())
+  name      String
+  hex       String
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+}
+
+model ProductSize {
+  id        Int     @id @default(autoincrement())
+  size      Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  rating     Float
+  comment    String?
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        Int
+  totalAmount   Float
+  status        OrderStatus   @default(PENDING)
+  paymentIntent String?
+  paymentStatus PaymentStatus @default(PENDING)
+  shippingAddress String
+  orderItems    OrderItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  price     Float
+  color     String?
+  size      Int?
 }
