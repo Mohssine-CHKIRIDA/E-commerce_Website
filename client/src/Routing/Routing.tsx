@@ -8,6 +8,8 @@ import CategoriesPage from "../pages/CategoriesPage";
 import ProductReviewPage from "../pages/ProductReviewPage";
 
 import slugify from "slugify";
+import AccountPage from "../pages/AccountPage";
+import Dashboard from "../pages/Dashboard";
 
 const slugifyParam = (text: string | number) =>
   slugify(String(text), { lower: true, strict: true });
@@ -21,6 +23,8 @@ export const routes: {
   register: string;
   cart: string;
   all: string;
+  account: string;
+  dashboard: string;
   category: RoutePath;
   product: RoutePath;
   subcategory: RoutePath;
@@ -30,6 +34,8 @@ export const routes: {
   register: "/register",
   cart: "/cart",
   all: "/products",
+  account: "/account",
+  dashboard: "/dashboard",
   category: (name) => `/products/${slugifyParam(name)}`,
   product: (id) => `/product/${slugifyParam(id)}`,
   subcategory: (cat, sub) =>
@@ -42,17 +48,16 @@ export default function AppRoutes() {
       <Route path={routes.home} element={<MainPage />} />
       <Route path={routes.login} element={<Login1 />} />
       <Route path={routes.register} element={<Register1 />} />
-      <Route path={routes.cart} element={<CartPage />} />
+      <Route path={routes.account} element={<AccountPage />} />
+      <Route path={routes.dashboard} element={<Dashboard />} />
 
-      {/* Category routes using ProductsListing */}
+      <Route path={routes.cart} element={<CartPage />} />
       <Route path={routes.all} element={<CategoriesPage />} />
       <Route path="/products/:name" element={<CategoriesPage />} />
       <Route path="/products/:parent/:child" element={<CategoriesPage />} />
-
-      {/* Product review */}
+      <Route path="/search" element={<CategoriesPage />} />
       <Route path="/product/:id" element={<ProductReviewPage />} />
 
-      {/* Fallback route */}
       <Route path="*" element={<ErrorPage />} />
     </Routes>
   );

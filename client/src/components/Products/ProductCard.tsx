@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Rating from "./Rating";
-import { useCart } from "../Cart/CartContext";
+import { useCart } from "../../Context/CartContext";
 
 export interface ProductProps {
   id: number;

@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { routes } from "../../Routing/Routing";
 import Footer from "../Footer";
 import Header from "../Header";
-import { CartProvider } from "../Cart/CartContext";
+import { CartProvider } from "../../Context/CartContext";
+import { useAuth } from "../../Context/AuthContext";
 
 const Login1: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,8 +17,15 @@ const Login1: React.FC = () => {
       alert("Please fill in both fields.");
       return;
     }
-    // Handle login logic here
-    alert(`Logged in with email: ${email}`);
+    const profile = {
+      name: "",
+      email: email,
+      phone: "",
+      birthdate: "",
+      gender: "",
+    };
+
+    login(profile);
   };
 
   return (

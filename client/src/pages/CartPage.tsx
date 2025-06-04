@@ -1,5 +1,5 @@
 import CartPageIntern from "../components/Cart/Cart";
-import { CartProvider } from "../components/Cart/CartContext";
+import { CartProvider } from "../Context/CartContext";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 

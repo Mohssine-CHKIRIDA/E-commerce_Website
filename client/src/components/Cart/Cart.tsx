@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CartItem as product, useCart } from "./CartContext";
+import { CartItem as product, useCart } from "../../Context/CartContext";
 
 interface CartItemProps {
   item: product;

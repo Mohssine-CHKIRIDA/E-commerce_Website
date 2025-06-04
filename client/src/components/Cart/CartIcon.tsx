@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { BsCart3 } from "react-icons/bs";
 import CartSlide from "./CartSlide";
 import { Link } from "react-router-dom";
-import { useCart } from "./CartContext";
+import { useCart } from "../../Context/CartContext";
 
 export default function Cart() {
   const [isOpen, setIsOpen] = useState(false);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCart } from "../Cart/CartContext";
+import { useCart } from "../../Context/CartContext";
 import Footer from "../Footer";
 import Header from "../Header";
 import { Star, ShoppingCart, ArrowLeft, ChevronRight } from "lucide-react";

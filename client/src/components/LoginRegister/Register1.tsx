@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { routes } from "../../Routing/Routing";
 import Header from "../Header";
 import Footer from "../Footer";
-import { CartProvider } from "../Cart/CartContext";
+import { CartProvider } from "../../Context/CartContext";
+import { useAuth } from "../../Context/AuthContext";
 
 const Register1 = () => {
   const [formData, setFormData] = useState({
@@ -12,13 +13,13 @@ const Register1 = () => {
     password: "",
     confirmPassword: "",
   });
+  const { login } = useAuth();
 
   const [error, setError] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -27,14 +28,17 @@ const Register1 = () => {
       return;
     }
 
-    // Reset error and handle form submission (e.g., send data to backend)
-    setError("");
-    console.log("Form submitted", formData);
+    const profile = {
+      name: formData.username,
+      email: formData.email,
+      phone: "",
+      birthdate: "",
+      gender: "",
+    };
 
-    // You can reset the form if needed:
-    // setFormData({ username: "", email: "", password: "", confirmPassword: "" });
+    login(profile);
+    console.log("Form submitted", profile);
   };
-
   return (
     <CartProvider>
       <Header />

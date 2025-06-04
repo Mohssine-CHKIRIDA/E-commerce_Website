@@ -1,6 +1,6 @@
 import { FaTrash, FaShoppingCart, FaArrowRight } from "react-icons/fa";
 import { HiMinusSm, HiPlusSm } from "react-icons/hi";
-import { useCart } from "./CartContext";
+import { useCart } from "../../Context/CartContext";
 import { useState } from "react";
 interface Props {
   isOpen: boolean;

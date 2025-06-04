@@ -12,10 +12,10 @@ export const Products = [
     numReviews: 154,
     description: "High-end smartphone with Super Retina XDR display and A16 Bionic chip.",
     colors: [
-      { name: "Silver", bgColor: "bg-gray-300", selectedColor: "ring-gray-300" },
-      { name: "Space Black", bgColor: "bg-gray-900", selectedColor: "ring-gray-900" },
-      { name: "Gold", bgColor: "bg-yellow-400", selectedColor: "ring-yellow-400" },
-      { name: "Deep Purple", bgColor: "bg-purple-700", selectedColor: "ring-purple-700" },
+      { name: "Silver", hex: "#D1D5DB" },
+      { name: "Space Black", hex: "#111827" },
+      { name: "Gold", hex: "#FACC15" },
+      { name: "Deep Purple", hex: "#6B21A8" },
     ],
   },
   {
@@ -44,8 +44,8 @@ export const Products = [
     numReviews: 65,
     description: "Lightweight ultrabook with InfinityEdge display and Intel Core i7 processor.",
     colors: [
-      { name: "Silver", bgColor: "bg-gray-300", selectedColor: "ring-gray-300" },
-      { name: "Black", bgColor: "bg-gray-800", selectedColor: "ring-gray-800" },
+      { name: "Silver", hex: "#D1D5DB" },
+      { name: "Black", hex: "#1F2937" },
     ],
   },
   {
@@ -74,10 +74,10 @@ export const Products = [
     numReviews: 112,
     description: "Lightweight and comfortable shoes ideal for running and sports.",
     colors: [
-      { name: "Black", bgColor: "bg-black", selectedColor: "ring-black" },
-      { name: "White", bgColor: "bg-white", selectedColor: "ring-gray-200" },
-      { name: "Blue", bgColor: "bg-blue-600", selectedColor: "ring-blue-600" },
-      { name: "Red", bgColor: "bg-red-600", selectedColor: "ring-red-600" },
+      { name: "Black", hex: "#000000" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Blue", hex: "#2563EB" },
+      { name: "Red", hex: "#DC2626" },
     ],
     sizes: [38, 39, 40, 41, 42, 43, 44],
   },
@@ -107,8 +107,8 @@ export const Products = [
     numReviews: 210,
     description: "Next-gen console with exceptional gaming performance and ultra-fast SSD.",
     colors: [
-      { name: "White", bgColor: "bg-white", selectedColor: "ring-gray-200" },
-      { name: "Black", bgColor: "bg-black", selectedColor: "ring-black" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Black", hex: "#000000" },
     ],
   },
   {
@@ -137,10 +137,10 @@ export const Products = [
     numReviews: 41,
     description: "Comfortable and lightweight mat for yoga or fitness practice.",
     colors: [
-      { name: "Purple", bgColor: "bg-purple-600", selectedColor: "ring-purple-600" },
-      { name: "Blue", bgColor: "bg-blue-600", selectedColor: "ring-blue-600" },
-      { name: "Green", bgColor: "bg-green-600", selectedColor: "ring-green-600" },
-      { name: "Gray", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
+      { name: "Purple", hex: "#9333EA" },
+      { name: "Blue", hex: "#2563EB" },
+      { name: "Green", hex: "#16A34A" },
+      { name: "Gray", hex: "#9CA3AF" },
     ],
   },
   {
@@ -156,9 +156,9 @@ export const Products = [
     numReviews: 36,
     description: "Comfortable multifunction stroller, easy to fold and suitable from birth.",
     colors: [
-      { name: "Gray", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
-      { name: "Black", bgColor: "bg-black", selectedColor: "ring-black" },
-      { name: "Navy Blue", bgColor: "bg-blue-900", selectedColor: "ring-blue-900" },
+      { name: "Gray", hex: "#9CA3AF" },
+      { name: "Black", hex: "#000000" },
+      { name: "Navy Blue", hex: "#1E3A8A" },
     ],
   },
 ];
