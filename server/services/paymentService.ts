@@ -15,7 +15,7 @@ export class PaymentService {
             const order = await prisma.order.findUnique({
                 where: { id: orderId },
                 include: {
-                    items: {
+                    orderItems: {
                         include: {
                             product: true
                         }
