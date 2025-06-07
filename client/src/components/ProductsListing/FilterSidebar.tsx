@@ -2,25 +2,18 @@ import { Link } from "react-router-dom";
 import { routes } from "../../Routing/Routing";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useState } from "react";
-interface CategoryData {
-  id: number;
-  name: string;
-  icon: React.ElementType;
-  imageUrl: string;
-  subcategories: string[];
-  brands: string[]; // Ajout ici
-}
+import { Brand, Category, Subcategory } from "../types";
 
 interface FilterSidebarProps {
-  categories: CategoryData[];
-  brands: string[];
+  categories: Category[];
+  brands: Brand[];
   activeCategory: string;
   setActiveCategory: (category: string) => void;
-  subcategories: string[]; // ➕
+  subcategories: Subcategory[]; // ➕
   activeSubCategory: string; // ➕
   setActiveSubCategory: (subcat: string) => void; // ➕
-  activeBrands: string[];
-  setActiveBrands: (brands: string[]) => void;
+  activeBrands: Brand[];
+  setActiveBrands: (brands: Brand[]) => void;
   priceRange: [number, number];
   setPriceRange: (range: [number, number]) => void;
   maxPrice: number;
@@ -46,7 +39,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
 }) => {
   const [openSub, setOpenSub] = useState<string | null>(null);
 
-  const handleBrandToggle = (brand: string) => {
+  const handleBrandToggle = (brand: Brand) => {
     if (activeBrands.includes(brand)) {
       setActiveBrands(activeBrands.filter((b) => b !== brand));
     } else {
@@ -75,7 +68,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             const isOpen = openSub === cat.name;
 
             return (
-              <div key={cat.name}>
+              <div key={cat.id}>
                 <div className="flex justify-between items-center">
                   <Link
                     to={routes.category(cat.name)}
@@ -95,23 +88,23 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     {isOpen ? <FaChevronUp /> : <FaChevronDown />}
                   </button>
                 </div>
-                {isOpen && cat.subcategories.length > 0 && (
+                {isOpen && cat.subcategories != null && (
                   <ul className="ml-4 mt-1 space-y-1">
                     {cat.subcategories.map((sub) => (
-                      <li key={sub}>
+                      <li key={sub.id}>
                         <Link
-                          to={routes.subcategory(cat.name, sub)}
+                          to={routes.subcategory(cat.name, sub.name)}
                           onClick={() => {
                             setActiveCategory(cat.name);
-                            setActiveSubCategory(sub);
+                            setActiveSubCategory(sub.name);
                           }}
                           className={`block px-2 py-1 text-sm rounded ${
-                            activeSubCategory === sub
+                            activeSubCategory === sub.name
                               ? "bg-blue-100 font-semibold"
                               : "text-gray-600 hover:bg-gray-100"
                           }`}
                         >
-                          {sub}
+                          {sub.name}
                         </Link>
                       </li>
                     ))}
@@ -124,18 +117,19 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </fieldset>
 
       {/* Brands */}
+
       <fieldset className="mb-6">
         <legend className="font-medium mb-2">Brands</legend>
         <div className="flex flex-col space-y-2">
-          {brands.map((brand) => (
-            <label key={brand} className="flex items-center">
+          {brands.slice(0, 10).map((brand) => (
+            <label key={brand.id} className="flex items-center">
               <input
                 type="checkbox"
-                checked={activeBrands.includes(brand)}
+                checked={activeBrands.some((b) => b.id === brand.id)}
                 onChange={() => handleBrandToggle(brand)}
                 className="mr-2"
               />
-              {brand}
+              {brand.name}
             </label>
           ))}
         </div>

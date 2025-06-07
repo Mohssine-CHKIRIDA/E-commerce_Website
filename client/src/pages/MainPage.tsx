@@ -1,5 +1,4 @@
 import Header from "../components/Header";
-import { categories } from "../components/Categories/cat";
 import Hero from "../components/Promos/Hero";
 import CategoriesSlider from "../components/Categories/CategoriesSlider";
 import Footer from "../components/Footer";
@@ -9,7 +8,9 @@ import { HeroPromo } from "../components/Promos/HeroPromo";
 import { DiscountBanner } from "../components/Promos/DiscountBanner";
 import { FeaturesGrid } from "../components/Promos/FeaturesGrid";
 import { NewsletterSignup } from "../components/Promos/NewsletterSignup";
+import { useCategories } from "../hooks/hookCategory";
 function MainPage() {
+  const { categories } = useCategories();
   return (
     <>
       <CartProvider>

@@ -6,43 +6,23 @@ import { Star, ShoppingCart, ArrowLeft, ChevronRight } from "lucide-react";
 import ReviewField from "./ReviewField";
 import { Link } from "react-router-dom";
 import { routes } from "../../Routing/Routing";
+import { Product, Color } from "../types";
 
 function classNames(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
 interface ProductReviewProps {
-  product: ProductProps;
+  product: Product;
 }
 type ProductSize = string | number;
-type ProductColor = {
-  name: string;
-  bgColor: string;
-  selectedColor: string;
-};
-interface ProductProps {
-  id: number;
-  name: string;
-  category: string;
-  subcategory: string;
-  imageUrl: string;
-  price: number;
-  InStock: number;
-  brand: string;
-  rating: number;
-  numReviews: number;
-  description: string;
-  sizes?: (string | number)[];
-  colors?: ProductColor[];
-  comments?: string[];
-}
 
 export default function ProductReviewP({ product }: ProductReviewProps) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState<ProductSize>("M");
   const [quantity, setQuantity] = useState(1);
   const productColors = product?.colors || [];
-  const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>(
+  const [selectedColor, setSelectedColor] = useState<Color | undefined>(
     productColors.length > 0 ? productColors[0] : undefined
   );
   const handleAddToCart = () => {
@@ -51,7 +31,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
       name: product.name,
       price: product.price,
       imageUrl: product.imageUrl,
-      Instock: product.InStock,
+      Instock: product.inStock,
       quantity: quantity,
     });
   };
@@ -77,10 +57,10 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
 
               <li>
                 <Link
-                  to={routes.category(product.category)}
+                  to={routes.category(product.category.name)}
                   className="text-sm font-medium text-gray-500 hover:text-gray-900"
                 >
-                  {product.category}
+                  {product.category.name}
                 </Link>
               </li>
 
@@ -90,12 +70,12 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                   <li>
                     <Link
                       to={routes.subcategory(
-                        product.category,
-                        product.subcategory
+                        product.category.name,
+                        product.subcategory.name
                       )}
                       className="text-sm font-medium text-gray-500 hover:text-gray-900"
                     >
-                      {product.subcategory}
+                      {product.subcategory.name}
                     </Link>
                   </li>
                 </>
@@ -177,7 +157,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
 
                 <div className="mt-4">
                   <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                    {product.brand}
+                    {product.brand.name}
                   </span>
                 </div>
 
@@ -200,7 +180,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                           key={color.name}
                           type="button"
                           className={classNames(
-                            color.bgColor,
+                            color.name,
                             "relative h-8 w-8 rounded-full",
                             selectedColor?.name === color.name &&
                               "ring-2 ring-indigo-500 ring-offset-2"
@@ -232,16 +212,16 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                     <div className="mt-3 grid grid-cols-6 gap-3">
                       {product.sizes.map((size) => (
                         <button
-                          key={size}
-                          onClick={() => setSelectedSize(size)}
+                          key={size.id}
+                          onClick={() => setSelectedSize(size.value)}
                           className={classNames(
-                            selectedSize === size
+                            selectedSize === size.value
                               ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                               : "border-gray-200 bg-white text-gray-900 hover:bg-gray-50",
                             "flex items-center justify-center rounded-md border py-2 text-sm font-medium uppercase"
                           )}
                         >
-                          {size}
+                          {size.value}
                         </button>
                       ))}
                     </div>
@@ -273,7 +253,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                     <button
                       type="button"
                       onClick={() =>
-                        quantity < product.InStock
+                        quantity < product.inStock
                           ? setQuantity(quantity + 1)
                           : setQuantity(quantity)
                       }
@@ -287,11 +267,11 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                 <div className="mt-8">
                   <button
                     onClick={handleAddToCart}
-                    disabled={product.InStock <= 0}
+                    disabled={product.inStock <= 0}
                     className="mt-4 bg-blue-500 hover:bg-yellow-500 text-black font-medium rounded py-2 px-4 text-sm disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <ShoppingCart />
-                    {product.InStock > 0 ? "Add to Cart" : "Out of Stock"}
+                    {product.inStock > 0 ? "Add to Cart" : "Out of Stock"}
                   </button>
                 </div>
 

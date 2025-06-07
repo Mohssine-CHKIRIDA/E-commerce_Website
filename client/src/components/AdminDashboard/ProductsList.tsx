@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Eye, Edit, Trash2, Search, Filter } from "lucide-react";
-import { Product, TabType } from "./types";
-
+import { TabType } from "./types";
+import { Product } from "../types";
 type ProductsTableProps = {
   products: Product[];
   setEditingProduct: (product: Product) => void;
@@ -105,7 +105,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
                       ${product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.InStock}
+                      {product.inStock}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
@@ -159,10 +159,10 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
               <strong>Price:</strong> ${selectedProduct.price}
             </p>
             <p>
-              <strong>Stock:</strong> {selectedProduct.InStock}
+              <strong>Stock:</strong> {selectedProduct.inStock}
             </p>
             <p>
-              <strong>Category:</strong> {selectedProduct.category}
+              <strong>Category:</strong> {selectedProduct.category.name}
             </p>
             <p>
               <strong>Rating:</strong> {selectedProduct.rating}

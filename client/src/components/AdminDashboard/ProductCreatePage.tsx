@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { X, Plus, Save, Image, Star } from "lucide-react";
-import { ProductColor, Product } from "./types";
-import { categories } from "../Categories/cat";
+import { ProductEdit, Color, Size, ProductInput } from "../types";
+import { useCategories } from "../../hooks/hookCategory";
+import { useCreateProduct } from "../../hooks/hookProducts";
 
 interface ProductCreationFormProps {
-  productEdit?: Product | null;
+  productEdit?: ProductEdit | null;
 }
 
 export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
   productEdit,
 }) => {
-  const [product, setProduct] = useState<Partial<Product>>({
+  const [product, setProduct] = useState<Partial<ProductEdit>>({
     name: "",
-    category: "",
-    subcategory: "",
+    category: { id: 0, name: "", imageUrl: "" },
+    subcategory: { id: 0, name: "" },
     imageUrl: "",
     price: 0,
-    InStock: 0,
-    brand: "",
+    inStock: 0,
+    brand: { id: 0, name: "" },
     rating: 0,
     numReviews: 0,
     description: "",
@@ -32,12 +33,12 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
     } else {
       setProduct({
         name: "",
-        category: "",
-        subcategory: "",
+        category: { id: 0, name: "", imageUrl: "" },
+        subcategory: { id: 0, name: "" },
         imageUrl: "",
         price: 0,
-        InStock: 0,
-        brand: "",
+        inStock: 0,
+        brand: { id: 0, name: "" },
         rating: 0,
         numReviews: 0,
         description: "",
@@ -46,16 +47,13 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
       });
     }
   }, [productEdit]);
+
   const [sizeInput, setSizeInput] = useState("");
   const [colorInput, setColorInput] = useState({ name: "", hex: "#000000" });
   const [nextColorId, setNextColorId] = useState(1);
+  const { categories } = useCategories();
 
-  const categoryNames = categories.map((cat) => cat.name);
-
-  const subcategoriesByCategory: { [key: string]: string[] } =
-    Object.fromEntries(categories.map((cat) => [cat.name, cat.subcategories]));
-
-  const handleInputChange = (field: keyof Product, value: unknown) => {
+  const handleInputChange = (field: keyof ProductEdit, value: unknown) => {
     setProduct((prev) => ({
       ...prev,
       [field]: value,
@@ -63,10 +61,17 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
   };
 
   const addSize = () => {
-    if (sizeInput.trim() && !product.sizes?.includes(sizeInput.trim())) {
-      const newSize = isNaN(Number(sizeInput))
-        ? sizeInput.trim()
-        : Number(sizeInput);
+    const trimmed = sizeInput.trim();
+    if (
+      trimmed &&
+      !product.sizes?.some(
+        (s) => String(s.value).toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
+      const newSize: Size = {
+        id: Date.now(), // ou générer un UUID si besoin
+        value: isNaN(Number(trimmed)) ? trimmed : Number(trimmed),
+      };
       setProduct((prev) => ({
         ...prev,
         sizes: [...(prev.sizes || []), newSize],
@@ -75,16 +80,16 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
     }
   };
 
-  const removeSize = (sizeToRemove: string | number) => {
+  const removeSize = (sizeId: number) => {
     setProduct((prev) => ({
       ...prev,
-      sizes: prev.sizes?.filter((size) => size !== sizeToRemove),
+      sizes: prev.sizes?.filter((size) => size.id !== sizeId),
     }));
   };
 
   const addColor = () => {
     if (colorInput.name.trim()) {
-      const newColor: ProductColor = {
+      const newColor: Color = {
         id: nextColorId,
         name: colorInput.name.trim(),
         hex: colorInput.hex,
@@ -97,6 +102,12 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
       setNextColorId((prev) => prev + 1);
     }
   };
+  const handleBrandChange = (name: string) => {
+    setProduct((prev) => ({
+      ...prev,
+      brand: { id: prev.brand?.id || 0, name },
+    }));
+  };
 
   const removeColor = (colorId: number) => {
     setProduct((prev) => ({
@@ -104,27 +115,54 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
       colors: prev.colors?.filter((color) => color.id !== colorId),
     }));
   };
+  const { submit, loading } = useCreateProduct();
 
-  const handleSave = () => {
-    const productData: Product = {
-      id: Date.now(),
-      name: product.name || "",
-      category: product.category || "",
-      subcategory: product.subcategory || "",
-      imageUrl: product.imageUrl || "",
-      price: product.price || 0,
-      InStock: product.InStock || 0,
-      brand: product.brand || "",
-      rating: product.rating || 0,
-      numReviews: product.numReviews || 0,
-      description: product.description || "",
-      sizes: product.sizes || [],
-      colors: product.colors || [],
+  const convertToProductInput = (
+    product: Partial<ProductEdit>
+  ): ProductInput => {
+    if (
+      !product.name ||
+      !product.description ||
+      !product.price ||
+      !product.imageUrl ||
+      !product.rating ||
+      !product.inStock ||
+      !product.category?.id ||
+      !product.subcategory?.id ||
+      !product.brand?.name
+    ) {
+      throw new Error("Le produit est incomplet");
+    }
+    const sizesValues = product.sizes?.map((size) => size.value) || [];
+
+    return {
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      rating: product.rating,
+      inStock: product.inStock,
+      categoryId: product.category.id,
+      subcategoryId: product.subcategory.id,
+      brandName: product.brand.name,
+      colors: (product.colors || []).map((c) => ({ name: c.name, hex: c.hex })),
+      sizes: sizesValues || [],
     };
-
-    console.log("Product to save:", productData);
-    // Here you would typically send this to your API
   };
+
+  const handleSave = async () => {
+    try {
+      const productInput = convertToProductInput(product);
+      const createdProduct = await submit(productInput);
+      console.log("Produit créé:", createdProduct);
+      // Ici tu peux reset le formulaire ou rediriger
+    } catch (err) {
+      console.error(err);
+      // Erreur gérée par le hook dans error
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -145,12 +183,15 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                 onClick={() => {
                   setProduct({
                     name: "",
-                    category: "",
-                    subcategory: "",
+                    category: { id: 0, name: "", imageUrl: "" },
+                    subcategory: {
+                      id: 0,
+                      name: "",
+                    },
                     imageUrl: "",
                     price: 0,
-                    InStock: 0,
-                    brand: "",
+                    inStock: 0,
+                    brand: { id: 0, name: "" },
                     rating: 0,
                     numReviews: 0,
                     description: "",
@@ -164,10 +205,11 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
               </button>
               <button
                 onClick={handleSave}
+                disabled={loading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
                 <Save size={16} />
-                Save product
+                {loading ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
@@ -203,10 +245,8 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={product.brand}
-                      onChange={(e) =>
-                        handleInputChange("brand", e.target.value)
-                      }
+                      value={product.brand?.name}
+                      onChange={(e) => handleBrandChange(e.target.value)}
                       placeholder="Enter brand name"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
@@ -313,9 +353,9 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                   </label>
                   <input
                     type="number"
-                    value={product.InStock}
+                    value={product.inStock}
                     onChange={(e) =>
-                      handleInputChange("InStock", Number(e.target.value))
+                      handleInputChange("inStock", Number(e.target.value))
                     }
                     placeholder="0"
                     min="0"
@@ -365,9 +405,9 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                           key={index}
                           className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
                         >
-                          {size}
+                          {size.value}
                           <button
-                            onClick={() => removeSize(size)}
+                            onClick={() => removeSize(size.id)}
                             className="hover:text-gray-600"
                           >
                             <X size={12} />
@@ -520,17 +560,21 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                     Category *
                   </label>
                   <select
-                    value={product.category}
+                    value={product.category?.id || ""}
                     onChange={(e) => {
-                      handleInputChange("category", e.target.value);
-                      handleInputChange("subcategory", ""); // Reset subcategory
+                      const selectedCatId = Number(e.target.value);
+                      const selectedCategory = categories.find(
+                        (cat) => cat.id === selectedCatId
+                      ) || { id: 0, name: "", imageUrl: "" };
+                      handleInputChange("category", selectedCategory);
+                      handleInputChange("subcategory", { id: 0, name: "" }); // Reset subcategory when category changes
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   >
                     <option value="">Select category</option>
-                    {categoryNames.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
                       </option>
                     ))}
                   </select>
@@ -541,22 +585,25 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                     Subcategory *
                   </label>
                   <select
-                    value={product.subcategory}
-                    onChange={(e) =>
-                      handleInputChange("subcategory", e.target.value)
-                    }
+                    value={product.subcategory?.id || ""}
+                    onChange={(e) => {
+                      const selectedId = Number(e.target.value);
+                      // Trouver la sous-catégorie sélectionnée dans la catégorie courante
+                      const selectedSubcat =
+                        product.category?.subcategories?.find(
+                          (subcat) => subcat.id === selectedId
+                        );
+                      handleInputChange("subcategory", selectedSubcat);
+                    }}
                     disabled={!product.category}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
                   >
                     <option value="">Select subcategory</option>
-                    {product.category &&
-                      subcategoriesByCategory[product.category]?.map(
-                        (subcat) => (
-                          <option key={subcat} value={subcat}>
-                            {subcat}
-                          </option>
-                        )
-                      )}
+                    {product.category?.subcategories?.map((subcat) => (
+                      <option key={subcat.id} value={subcat.id}>
+                        {subcat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -587,7 +634,8 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                   {product.name || "Product title"}
                 </h4>
                 <p className="text-xs text-gray-500 mb-2">
-                  {product.brand || "Brand"} • {product.category || "Category"}
+                  {product.brand?.name || "Brand"} •{" "}
+                  {product.category?.name || "Category"}
                 </p>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex items-center">
@@ -611,7 +659,7 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                   ${product.price || "0.00"}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Stock: {product.InStock || 0} items
+                  Stock: {product.inStock || 0} items
                 </p>
               </div>
             </div>
@@ -639,7 +687,7 @@ export const ProductCreationForm: React.FC<ProductCreationFormProps> = ({
                   <span className="text-sm text-gray-600">Stock Value</span>
                   <span className="text-sm font-medium">
                     $
-                    {((product.price || 0) * (product.InStock || 0)).toFixed(2)}
+                    {((product.price || 0) * (product.inStock || 0)).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import slugify from "slugify";
-
-import ProductCard, { ProductProps } from "../Products/ProductCard";
-import { Products } from "../Products/Products";
+import ProductCard from "../Products/ProductCard";
 import { FilterSidebar } from "./FilterSidebar";
-import { categories } from "../Categories/cat";
+import { Brand, Product } from "../types";
+import { useProducts } from "../../hooks/hookProducts";
+import { useCategories } from "../../hooks/hookCategory";
 
 const ProductsListing = () => {
   const { name, parent, child } = useParams<{
@@ -13,28 +13,26 @@ const ProductsListing = () => {
     parent?: string;
     child?: string;
   }>();
+  const { products, loading } = useProducts();
 
   const routeCategory = name ?? child ?? parent;
   const navigate = useNavigate();
-  const [products] = useState<ProductProps[]>(Products);
+  const [Products] = useState<Product[]>(products);
+  const { categories } = useCategories();
 
-  // Max price computed from products dynamically
   const maxPrice = Math.max(...products.map((p) => p.price), 2000);
 
-  // Filters state
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [activeSubCategory, setActiveSubCategory] = useState<string>("All");
-  const [activeBrands, setActiveBrands] = useState<string[]>([]);
+  const [activeBrands, setActiveBrands] = useState<Brand[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPrice]);
   const [minRating, setMinRating] = useState<number>(0);
   const [sortOption, setSortOption] = useState<string>("default");
 
-  // Displayed brands depend on active category
-  const [displayedBrands, setDisplayedBrands] = useState<string[]>([
-    ...new Set(products.map((p) => p.brand)),
+  const [displayedBrands, setDisplayedBrands] = useState<Brand[]>([
+    ...new Set(Products.map((p) => p.brand)),
   ]);
 
-  // Update displayed brands & reset brand filters when category changes
   useEffect(() => {
     if (activeCategory === "All") {
       const allBrands = [...new Set(products.map((p) => p.brand))];
@@ -43,18 +41,18 @@ const ProductsListing = () => {
       const categoryObj = categories.find(
         (cat) =>
           cat.name === activeCategory ||
-          cat.subcategories.includes(activeCategory)
+          cat.subcategories?.some((sub) => sub.name === activeCategory)
       );
+
       if (categoryObj) {
-        setDisplayedBrands(categoryObj.brands ?? []);
+        setDisplayedBrands(categoryObj.brands?.map((b) => b) ?? []);
       } else {
         setDisplayedBrands([]);
       }
     }
-    setActiveBrands([]); // Reset brands when category changes
-  }, [activeCategory, products]);
+    setActiveBrands([]);
+  }, [activeCategory, categories, products]);
 
-  // Sync filters with URL param on mount or when routeCategory changes
   useEffect(() => {
     if (routeCategory) {
       const decoded = decodeURIComponent(routeCategory);
@@ -63,26 +61,28 @@ const ProductsListing = () => {
       const categoryObj = categories.find((cat) => {
         const catSlug = slugify(cat.name, { lower: true });
         if (catSlug === decodedSlug) return true;
-        return cat.subcategories.some(
-          (sub) => slugify(sub, { lower: true }) === decodedSlug
+        return (cat.subcategories ?? []).some(
+          (sub) => slugify(sub.name, { lower: true }) === decodedSlug
         );
       });
 
       if (categoryObj) {
-        if (slugify(categoryObj.name, { lower: true }) === decodedSlug) {
+        const catSlug = slugify(categoryObj.name, { lower: true });
+        if (catSlug === decodedSlug) {
           setActiveCategory(categoryObj.name);
           setActiveSubCategory("All");
         } else {
-          const matchedSub = categoryObj.subcategories.find(
-            (sub) => slugify(sub, { lower: true }) === decodedSlug
+          const matchedSub = (categoryObj.subcategories ?? []).find(
+            (sub) => slugify(sub.name, { lower: true }) === decodedSlug
           );
           setActiveCategory(categoryObj.name);
-          setActiveSubCategory(matchedSub ?? "All");
+          setActiveSubCategory(matchedSub ? matchedSub.name : "All");
         }
       } else {
         setActiveCategory("All");
         setActiveSubCategory("All");
       }
+
       setActiveBrands([]);
       setPriceRange([0, maxPrice]);
       setMinRating(0);
@@ -93,9 +93,8 @@ const ProductsListing = () => {
       setPriceRange([0, maxPrice]);
       setMinRating(0);
     }
-  }, [routeCategory, maxPrice]);
+  }, [routeCategory, maxPrice, categories]);
 
-  // Update URL when category or subcategory changes
   useEffect(() => {
     if (activeCategory === "All") {
       navigate("/products");
@@ -107,18 +106,15 @@ const ProductsListing = () => {
         const catSlug = slugify(activeCategory, { lower: true });
         const subSlug = slugify(activeSubCategory, { lower: true });
         navigate(`/products/${catSlug}/${subSlug}`);
-        // Alternatively, if you want both cat and sub in URL,
-        // you can do something like `/products/${catSlug}/${subSlug}`
       }
     }
   }, [activeCategory, activeSubCategory, navigate]);
 
-  // Memoized subcategories for sidebar filter display
   const displayedSubcategories = useMemo(() => {
     if (activeCategory === "All") return [];
     const categoryObj = categories.find((cat) => cat.name === activeCategory);
     return categoryObj?.subcategories ?? [];
-  }, [activeCategory]);
+  }, [activeCategory, categories]);
 
   const resetFilters = () => {
     setActiveCategory("All");
@@ -128,29 +124,30 @@ const ProductsListing = () => {
     setMinRating(0);
   };
 
-  // Filter products by all active filters
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      if (activeCategory !== "All" && product.category !== activeCategory) {
-        return false;
-      }
-      if (
-        activeSubCategory !== "All" &&
-        product.subcategory &&
-        product.subcategory !== activeSubCategory
-      ) {
-        return false;
-      }
-      if (activeBrands.length > 0 && !activeBrands.includes(product.brand)) {
-        return false;
-      }
-      if (product.price < priceRange[0] || product.price > priceRange[1]) {
-        return false;
-      }
-      if (product.rating < minRating) {
-        return false;
-      }
-      return true;
+      const matchCategory =
+        activeCategory === "All" || product.category.name === activeCategory;
+
+      const matchSubCategory =
+        activeSubCategory === "All" ||
+        (product.subcategory && product.subcategory.name === activeSubCategory);
+
+      const matchBrand =
+        activeBrands.length === 0 || activeBrands.includes(product.brand);
+
+      const matchPrice =
+        product.price >= priceRange[0] && product.price <= priceRange[1];
+
+      const matchRating = product.rating >= minRating;
+
+      return (
+        matchCategory &&
+        matchSubCategory &&
+        matchBrand &&
+        matchPrice &&
+        matchRating
+      );
     });
   }, [
     products,
@@ -161,7 +158,6 @@ const ProductsListing = () => {
     minRating,
   ]);
 
-  // Sort filtered products
   const sortedProducts = useMemo(() => {
     const sorted = [...filteredProducts];
     switch (sortOption) {
@@ -175,6 +171,32 @@ const ProductsListing = () => {
         return sorted;
     }
   }, [filteredProducts, sortOption]);
+
+  // Pagination
+  const productsPerPage = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = sortedProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    activeCategory,
+    activeSubCategory,
+    activeBrands,
+    priceRange,
+    minRating,
+    sortOption,
+  ]);
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
@@ -219,11 +241,70 @@ const ProductsListing = () => {
           </div>
 
           {sortedProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {currentProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex flex-wrap justify-center items-center mt-6 gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((pageNum) => {
+                  const shouldShow =
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    Math.abs(pageNum - currentPage) <= 1;
+
+                  if (!shouldShow && Math.abs(pageNum - currentPage) === 2) {
+                    return (
+                      <span key={`ellipsis-${pageNum}`} className="px-2">
+                        ...
+                      </span>
+                    );
+                  }
+
+                  if (!shouldShow) return null;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === pageNum
+                          ? "bg-blue-700 text-white"
+                          : "bg-white border text-blue-500"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </>
           ) : (
             <div className="bg-white p-8 rounded-lg shadow text-center">
               <p className="text-gray-600">

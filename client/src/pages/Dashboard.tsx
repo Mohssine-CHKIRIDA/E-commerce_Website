@@ -7,24 +7,28 @@ import { OrdersTablePage } from "../components/AdminDashboard/OrdersTablePage";
 import {
   TabType,
   Order,
-  Product,
   SalesData,
   CategoryData,
 } from "../components/AdminDashboard/types";
-import { Products } from "../components/Products/Products";
 import { CustomersTable } from "../components/AdminDashboard/CustomersTable";
 import { ProductCreationForm } from "../components/AdminDashboard/ProductCreatePage";
+import { useProducts } from "../hooks/hookProducts";
+import { Product } from "../components/types";
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Sample data
+  const { products, loading } = useProducts();
+
+  if (loading) return <p>Loading...</p>;
   const salesData: SalesData[] = [];
   const categoryData: CategoryData[] = [];
   const recentOrders: Order[] = [];
-  const topProducts: Product[] = Products;
+  const topProducts: Product[] = products.filter(
+    (product) => product.rating > 4
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {

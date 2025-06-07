@@ -1,26 +1,13 @@
 import { Link } from "react-router-dom";
 import Rating from "./Rating";
 import { useCart } from "../../Context/CartContext";
-
-export interface ProductProps {
-  id: number;
-  name: string;
-  category: string;
-  subcategory: string;
-  imageUrl: string;
-  price: number;
-  InStock: number;
-  brand: string;
-  rating: number;
-  numReviews: number;
-  description: string;
-}
+import { Product } from "../types";
 
 interface CardProps {
-  product: ProductProps;
+  product: Product;
 }
 
-export default function Product({ product }: CardProps) {
+export default function Productcard({ product }: CardProps) {
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
@@ -29,7 +16,7 @@ export default function Product({ product }: CardProps) {
       name: product.name,
       price: product.price,
       imageUrl: product.imageUrl,
-      Instock: product.InStock,
+      Instock: product.inStock,
       quantity: 1,
     });
   };
@@ -59,7 +46,7 @@ export default function Product({ product }: CardProps) {
             {product.name}
           </h3>
           <p className="text-xs text-gray-500">
-            {product.brand} • {product.category}
+            {product.brand.name} • {product.category.name}
           </p>
 
           <Rating rating={product.rating} numReviews={product.numReviews} />
@@ -68,7 +55,7 @@ export default function Product({ product }: CardProps) {
             ${product.price.toFixed(2)}
           </p>
 
-          {product.InStock > 0 ? (
+          {product.inStock > 0 ? (
             <p className="text-xs text-green-600">In stock</p>
           ) : (
             <p className="text-xs text-red-600">Currently unavailable</p>
@@ -79,10 +66,10 @@ export default function Product({ product }: CardProps) {
       {/* Add to cart stays outside the link */}
       <button
         onClick={handleAddToCart}
-        disabled={product.InStock <= 0}
+        disabled={product.inStock <= 0}
         className="mt-3 bg-blue-500 hover:bg-yellow-500 text-black font-medium rounded py-2 text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
-        {product.InStock > 0 ? "Add to Cart" : "Out of Stock"}
+        {product.inStock > 0 ? "Add to Cart" : "Out of Stock"}
       </button>
     </div>
   );
