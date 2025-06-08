@@ -5,10 +5,9 @@ import { Category } from "../types";
 
 interface Props {
   categories: Category[];
-  onSelected: (item: string) => void;
 }
 
-export default function CategoryMenu({ categories, onSelected }: Props) {
+export default function CategoryMenu({ categories }: Props) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
@@ -20,12 +19,11 @@ export default function CategoryMenu({ categories, onSelected }: Props) {
               key={cat.name}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
-              className="relative"
+              className="relative group"
             >
               <Link
                 to={routes.category(cat.name)}
-                onClick={() => onSelected(cat.name)}
-                className={` text-left flex justify-between items-center px-5 py-3 text-sm transition-colors ${
+                className={`text-left flex justify-between items-center px-5 py-3 text-sm transition-colors duration-200 ${
                   hoveredIndex === index
                     ? "bg-gray-100 text-orange-500"
                     : "text-gray-800"
@@ -41,8 +39,7 @@ export default function CategoryMenu({ categories, onSelected }: Props) {
                     <li key={sub.id}>
                       <Link
                         to={routes.subcategory(cat.name, sub.name)}
-                        onClick={() => onSelected(sub.name)}
-                        className="block w-full text-left px-5 py-3 text-sm text-gray-800 hover:bg-gray-100 hover:text-orange-500"
+                        className="block w-full text-left px-5 py-3 text-sm text-gray-800 hover:bg-gray-100 hover:text-orange-500 transition-colors duration-200"
                       >
                         {sub.name}
                       </Link>

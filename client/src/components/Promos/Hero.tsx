@@ -4,9 +4,6 @@ import { slides } from "../HeroPanles/panels";
 import { useCategories } from "../../hooks/hookCategory";
 
 export default function Hero() {
-  const onSelected = (item: string) => {
-    console.log(`Selected: ${item}`);
-  };
   const { categories } = useCategories();
 
   return (
@@ -14,7 +11,7 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-5">
         {/* Category Menu */}
         <div className="w-full lg:w-[280px] shrink-0">
-          <CategoryMenu categories={categories} onSelected={onSelected} />
+          <CategoryMenu categories={categories} />
         </div>
 
         <div className="flex-1">

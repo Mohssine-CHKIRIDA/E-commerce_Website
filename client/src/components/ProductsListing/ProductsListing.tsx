@@ -1,25 +1,23 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import slugify from "slugify";
 import ProductCard from "../Products/ProductCard";
 import { FilterSidebar } from "./FilterSidebar";
-import { Brand, Product } from "../types";
+import { Brand } from "../types";
 import { useProducts } from "../../hooks/hookProducts";
 import { useCategories } from "../../hooks/hookCategory";
 
 const ProductsListing = () => {
-  const { name, parent, child } = useParams<{
-    name?: string;
-    parent?: string;
-    child?: string;
-  }>();
   const { products, loading } = useProducts();
+  const { name, category, subcategory } = useParams<{
+    name?: string;
+    category?: string;
+    subcategory?: string;
+  }>();
 
-  const routeCategory = name ?? child ?? parent;
-  const navigate = useNavigate();
-  const [Products] = useState<Product[]>(products);
+  const routeCategory = name ?? subcategory ?? category;
+
   const { categories } = useCategories();
-
   const maxPrice = Math.max(...products.map((p) => p.price), 2000);
 
   const [activeCategory, setActiveCategory] = useState<string>("All");
@@ -29,31 +27,30 @@ const ProductsListing = () => {
   const [minRating, setMinRating] = useState<number>(0);
   const [sortOption, setSortOption] = useState<string>("default");
 
-  const [displayedBrands, setDisplayedBrands] = useState<Brand[]>([
-    ...new Set(Products.map((p) => p.brand)),
-  ]);
+  const displayedBrands = useMemo(() => {
+    const uniqueBrands = Array.from(
+      new Map(products.map((p) => [p.brand.id, p.brand])).values()
+    );
+    return uniqueBrands;
+  }, [products]);
 
-  useEffect(() => {
-    if (activeCategory === "All") {
-      const allBrands = [...new Set(products.map((p) => p.brand))];
-      setDisplayedBrands(allBrands);
-    } else {
-      const categoryObj = categories.find(
-        (cat) =>
-          cat.name === activeCategory ||
-          cat.subcategories?.some((sub) => sub.name === activeCategory)
-      );
+  const displayedSubcategories = useMemo(() => {
+    if (activeCategory === "All") return [];
+    const categoryObj = categories.find((cat) => cat.name === activeCategory);
+    return categoryObj?.subcategories ?? [];
+  }, [activeCategory, categories]);
 
-      if (categoryObj) {
-        setDisplayedBrands(categoryObj.brands?.map((b) => b) ?? []);
-      } else {
-        setDisplayedBrands([]);
-      }
-    }
+  const resetFilters = () => {
+    setActiveCategory("All");
+    setActiveSubCategory("All");
     setActiveBrands([]);
-  }, [activeCategory, categories, products]);
+    setPriceRange([0, maxPrice]);
+    setMinRating(0);
+  };
 
   useEffect(() => {
+    resetFilters();
+
     if (routeCategory) {
       const decoded = decodeURIComponent(routeCategory);
       const decodedSlug = slugify(decoded, { lower: true });
@@ -78,51 +75,9 @@ const ProductsListing = () => {
           setActiveCategory(categoryObj.name);
           setActiveSubCategory(matchedSub ? matchedSub.name : "All");
         }
-      } else {
-        setActiveCategory("All");
-        setActiveSubCategory("All");
       }
-
-      setActiveBrands([]);
-      setPriceRange([0, maxPrice]);
-      setMinRating(0);
-    } else {
-      setActiveCategory("All");
-      setActiveSubCategory("All");
-      setActiveBrands([]);
-      setPriceRange([0, maxPrice]);
-      setMinRating(0);
     }
   }, [routeCategory, maxPrice, categories]);
-
-  useEffect(() => {
-    if (activeCategory === "All") {
-      navigate("/products");
-    } else {
-      if (activeSubCategory === "All") {
-        const catSlug = slugify(activeCategory, { lower: true });
-        navigate(`/products/${catSlug}`);
-      } else {
-        const catSlug = slugify(activeCategory, { lower: true });
-        const subSlug = slugify(activeSubCategory, { lower: true });
-        navigate(`/products/${catSlug}/${subSlug}`);
-      }
-    }
-  }, [activeCategory, activeSubCategory, navigate]);
-
-  const displayedSubcategories = useMemo(() => {
-    if (activeCategory === "All") return [];
-    const categoryObj = categories.find((cat) => cat.name === activeCategory);
-    return categoryObj?.subcategories ?? [];
-  }, [activeCategory, categories]);
-
-  const resetFilters = () => {
-    setActiveCategory("All");
-    setActiveSubCategory("All");
-    setActiveBrands([]);
-    setPriceRange([0, maxPrice]);
-    setMinRating(0);
-  };
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -134,7 +89,8 @@ const ProductsListing = () => {
         (product.subcategory && product.subcategory.name === activeSubCategory);
 
       const matchBrand =
-        activeBrands.length === 0 || activeBrands.includes(product.brand);
+        activeBrands.length === 0 ||
+        activeBrands.some((b) => b.id === product.brand.id);
 
       const matchPrice =
         product.price >= priceRange[0] && product.price <= priceRange[1];

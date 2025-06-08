@@ -9,9 +9,9 @@ interface FilterSidebarProps {
   brands: Brand[];
   activeCategory: string;
   setActiveCategory: (category: string) => void;
-  subcategories: Subcategory[]; // ➕
-  activeSubCategory: string; // ➕
-  setActiveSubCategory: (subcat: string) => void; // ➕
+  subcategories: Subcategory[];
+  activeSubCategory: string;
+  setActiveSubCategory: (subcat: string) => void;
   activeBrands: Brand[];
   setActiveBrands: (brands: Brand[]) => void;
   priceRange: [number, number];
@@ -21,6 +21,7 @@ interface FilterSidebarProps {
   setMinRating: (rating: number) => void;
   onResetFilters: () => void;
 }
+
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   categories,
   brands,
@@ -40,8 +41,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const [openSub, setOpenSub] = useState<string | null>(null);
 
   const handleBrandToggle = (brand: Brand) => {
-    if (activeBrands.includes(brand)) {
-      setActiveBrands(activeBrands.filter((b) => b !== brand));
+    if (activeBrands.some((b) => b.id === brand.id)) {
+      setActiveBrands(activeBrands.filter((b) => b.id !== brand.id));
     } else {
       setActiveBrands([...activeBrands, brand]);
     }
@@ -57,7 +58,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <div className="flex flex-col space-y-2">
           <Link
             to={routes.all}
-            onClick={() => setActiveCategory("All")}
+            onClick={() => {
+              setActiveCategory("All");
+              setActiveSubCategory("All");
+            }}
             className={`block px-2 py-1 rounded hover:bg-gray-200 transition-colors ${
               activeCategory === "All" ? "bg-blue-100 font-semibold" : ""
             }`}
@@ -72,7 +76,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 <div className="flex justify-between items-center">
                   <Link
                     to={routes.category(cat.name)}
-                    onClick={() => setActiveCategory(cat.name)}
+                    onClick={() => {
+                      setActiveCategory(cat.name);
+                      setActiveSubCategory("All");
+                    }}
                     className={`block px-2 py-1 rounded w-full hover:bg-gray-200 transition-colors ${
                       activeCategory === cat.name
                         ? "bg-blue-100 font-semibold"
@@ -88,16 +95,26 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     {isOpen ? <FaChevronUp /> : <FaChevronDown />}
                   </button>
                 </div>
-                {isOpen && cat.subcategories != null && (
+                {isOpen && cat.subcategories && (
                   <ul className="ml-4 mt-1 space-y-1">
+                    <li key="all-sub">
+                      <Link
+                        to={routes.category(cat.name)}
+                        onClick={() => setActiveSubCategory("All")}
+                        className={`block px-2 py-1 text-sm rounded ${
+                          activeSubCategory === "All"
+                            ? "bg-blue-100 font-semibold"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        All
+                      </Link>
+                    </li>
                     {cat.subcategories.map((sub) => (
                       <li key={sub.id}>
                         <Link
                           to={routes.subcategory(cat.name, sub.name)}
-                          onClick={() => {
-                            setActiveCategory(cat.name);
-                            setActiveSubCategory(sub.name);
-                          }}
+                          onClick={() => setActiveSubCategory(sub.name)}
                           className={`block px-2 py-1 text-sm rounded ${
                             activeSubCategory === sub.name
                               ? "bg-blue-100 font-semibold"
@@ -117,7 +134,6 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </fieldset>
 
       {/* Brands */}
-
       <fieldset className="mb-6">
         <legend className="font-medium mb-2">Brands</legend>
         <div className="flex flex-col space-y-2">

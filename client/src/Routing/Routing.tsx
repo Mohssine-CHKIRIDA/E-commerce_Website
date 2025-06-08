@@ -6,15 +6,20 @@ import Register1 from "../components/LoginRegister/Register1";
 import CartPage from "../pages/CartPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import ProductReviewPage from "../pages/ProductReviewPage";
-
 import slugify from "slugify";
 import AccountPage from "../pages/AccountPage";
 import Dashboard from "../pages/Dashboard";
+import ProductsLayout from "../pages/CategoriesPage"; // <--- nouvelle ligne
+import ProductsListing from "../components/ProductsListing/ProductsListing";
 
 const slugifyParam = (text: string | number) =>
   slugify(String(text), { lower: true, strict: true });
 
-export type RoutePath = (param: string | number, subparam?: string) => string;
+type SingleParamPath = (param: string | number) => string;
+type DualParamPath = (
+  param1: string | number,
+  param2: string | number
+) => string;
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const routes: {
@@ -25,9 +30,9 @@ export const routes: {
   all: string;
   account: string;
   dashboard: string;
-  category: RoutePath;
-  product: RoutePath;
-  subcategory: RoutePath;
+  category: SingleParamPath;
+  product: SingleParamPath;
+  subcategory: DualParamPath;
 } = {
   home: "/",
   login: "/login",
@@ -50,14 +55,22 @@ export default function AppRoutes() {
       <Route path={routes.register} element={<Register1 />} />
       <Route path={routes.account} element={<AccountPage />} />
       <Route path={routes.dashboard} element={<Dashboard />} />
-
       <Route path={routes.cart} element={<CartPage />} />
-      <Route path={routes.all} element={<CategoriesPage />} />
-      <Route path="/products/:name" element={<CategoriesPage />} />
-      <Route path="/products/:parent/:child" element={<CategoriesPage />} />
+
+      {/* Layout pour les produits */}
+      <Route path="/products" element={<ProductsLayout />}>
+        <Route index element={<ProductsListing />} /> {/* /products */}
+        <Route path=":category" element={<ProductsListing />} />{" "}
+        {/* /products/:category */}
+        <Route
+          path=":category/:subcategory"
+          element={<ProductsListing />}
+        />{" "}
+        {/* /products/:category/:subcategory */}
+      </Route>
+
       <Route path="/search" element={<CategoriesPage />} />
       <Route path="/product/:id" element={<ProductReviewPage />} />
-
       <Route path="*" element={<ErrorPage />} />
     </Routes>
   );

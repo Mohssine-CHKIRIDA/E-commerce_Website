@@ -1,16 +1,17 @@
-import { CartProvider } from "../Context/CartContext";
-import Footer from "../components/Footer";
+// src/layouts/ProductsLayout.tsx
+import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
-import ProductsListing from "../components/ProductsListing/ProductsListing";
+import Footer from "../components/Footer";
+import { CartProvider } from "../Context/CartContext";
 
-export default function CategoriesPage() {
+export default function ProductsLayout() {
   return (
-    <>
-      <CartProvider>
-        <Header />
-        <ProductsListing />
-        <Footer />
-      </CartProvider>
-    </>
+    <CartProvider>
+      <Header />
+      <main>
+        <Outlet />
+      </main>
+      <Footer />
+    </CartProvider>
   );
 }
