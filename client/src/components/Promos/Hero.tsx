@@ -1,12 +1,13 @@
 import HeroSlider from "../HeroPanles/HeroPanel";
 import CategoryMenu from "../Categories/Category";
-import { categories } from "../Categories/cat";
 import { slides } from "../HeroPanles/panels";
+import { useCategories } from "../../hooks/hookCategory";
 
 export default function Hero() {
   const onSelected = (item: string) => {
     console.log(`Selected: ${item}`);
   };
+  const { categories } = useCategories();
 
   return (
     <section className="bg-gray-100 px-5 py-8">
