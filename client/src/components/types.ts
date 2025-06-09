@@ -48,15 +48,34 @@ export interface Product {
   brand: Brand;
   rating: number;
   numReviews: number;
+  Reviews:Review[]
   description: string;
   sizes?: Size[];
-  colors?: Color[];
+  productColors?: ProductColor[];
+}
+export interface Review {
+  id?: number;
+  productId: number;
+  userId: number;
+  rating: number;
+  title: string;
+  content: string;
+  createdAt?: string;
+  updatedAt?: string;
+  user?: {
+    name: string;
+  };
 }
 export type Color = {
   id:number,
   name: string;
   hex:string;
 };
+export interface ProductColor {
+  productId: number;
+  colorId: number;
+  color: Color;
+}
 export type Size = {
   id:number,
   value: number|string;

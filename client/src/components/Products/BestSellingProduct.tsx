@@ -16,14 +16,17 @@ export default function BestSellingProducts() {
         </p>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="transition-transform transform hover:scale-105 duration-300 ease-in-out"
-            >
-              <ProductCard product={product} />
-            </div>
-          ))}
+          {products.map(
+            (product) =>
+              product.rating > 4.5 && (
+                <div
+                  key={product.id}
+                  className="transition-transform transform hover:scale-105 duration-300 ease-in-out"
+                >
+                  <ProductCard product={product} />
+                </div>
+              )
+          )}
         </div>
       </div>
     </div>

@@ -23,3 +23,13 @@ export const getById = async (req: Request, res: Response) => {
   }
    res.json(product);
 };
+export const searchProducts = async (req: Request, res: Response) => {
+  const { q } = req.query;
+  try {
+    const products = await productService.searchProducts(q as string);
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

@@ -1,31 +1,45 @@
 import { useState } from "react";
-import { Reviews } from "./Reviews";
 import { Star } from "lucide-react";
+import { useReview } from "../../hooks/hookReviews";
+
 function classNames(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
 }
-interface Review {
-  productId: number;
-  rating: number;
-  title: string;
-  author: string;
-  date: string;
-  content: string;
-}
-export default function ReviewField() {
+
+export default function ReviewField({ productId }: { productId: number }) {
   const [newContent, setNewContent] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newRating, setNewRating] = useState<number>(5);
-  const productReviews: Review[] = Reviews.filter(
-    (review) => review.productId === 1
-  );
-  const [comments, setComments] = useState<Review[]>(productReviews || []);
+
+  const { reviews, loading, addReview } = useReview(productId);
+
+  const handleSubmit = async () => {
+    const trimmed = newContent.trim();
+    const trimmedTitle = newTitle.trim();
+
+    if (trimmed && trimmedTitle) {
+      const newReview = {
+        rating: newRating,
+        title: trimmedTitle,
+        content: trimmed,
+        productId,
+        userId: 1, // replace later with logged-in userId
+      };
+
+      await addReview(newReview);
+      setNewTitle("");
+      setNewContent("");
+      setNewRating(5);
+    }
+  };
+
   return (
     <div id="reviews" className="mt-16 pt-8 border-t border-gray-200">
       <h2 className="text-xl font-bold text-gray-900">Customer Reviews</h2>
+      {loading && <p className="text-sm text-gray-500">Loading reviews...</p>}
       <div className="mt-6 space-y-8">
-        {comments.map((review, index) => (
-          <div key={index} className="border-b border-gray-200 pb-6">
+        {reviews.map((review) => (
+          <div key={review.id} className="border-b border-gray-200 pb-6">
             <div className="flex items-center">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -44,9 +58,17 @@ export default function ReviewField() {
               </p>
             </div>
             <div className="mt-2 flex items-center text-sm text-gray-500">
-              <p>{review.author}</p>
+              <p>{review.user?.name || "Anonymous"}</p>
               <span className="mx-2">&middot;</span>
-              <p>{review.date}</p>
+              <p>
+                {review.createdAt
+                  ? new Date(review.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : ""}
+              </p>
             </div>
             <p className="mt-2 text-sm text-gray-600">{review.content}</p>
           </div>
@@ -91,30 +113,7 @@ export default function ReviewField() {
           </div>
 
           <button
-            onClick={() => {
-              const trimmed = newContent.trim();
-              const trimmedTitle = newTitle.trim();
-
-              if (trimmed && trimmedTitle) {
-                const newReview: Review = {
-                  rating: newRating,
-                  title: trimmedTitle,
-                  author: "Anonymous", // ou récupère l'utilisateur connecté
-                  date: new Date().toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }),
-                  content: trimmed,
-                  productId: 4, // ou une variable product.id si dynamique
-                };
-
-                setComments((prev) => [...prev, newReview]);
-                setNewTitle("");
-                setNewContent("");
-                setNewRating(5);
-              }
-            }}
+            onClick={handleSubmit}
             className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
             Submit Review

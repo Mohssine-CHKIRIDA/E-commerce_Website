@@ -15,7 +15,6 @@ interface ProductInput {
 }
 
 export const createProduct = async (data: ProductInput) => {
-  // 1. Gérer les tailles : créer si elles n'existent pas, puis préparer les connexions
   const sizeConnections = await Promise.all(
     data.sizes.map(async (sizeValue) => {
       const value = typeof sizeValue === 'number' ? String(sizeValue) : sizeValue;
@@ -114,6 +113,36 @@ export const getAllProducts = async () => {
 };
 
 export const getProductById = async (id: number) => {
+  return await prisma.product.findUnique({
+    where: { id },
+    include: {
+      brand: true,
+      category: true,
+      subcategory: true,
+      productColors: { include: { color: true } },
+      productSizes: { include: { size: true } },
+      reviews: true,
+    },
+  });
+};
+
+export const searchProducts = async (query:string) => {
+  if (!query || query.trim() === '') {
+    return [];
+  }
+
+  return await prisma.product.findMany({
+    where: {
+      OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { description: { contains: query, mode: 'insensitive' } },
+        { category: { name: { contains: query, mode: 'insensitive' } } },
+      ],
+    },
+    include: { category: true, subcategory: true },
+  });
+};
+export const getProductReviews = async (id: number) => {
   return await prisma.product.findUnique({
     where: { id },
     include: {

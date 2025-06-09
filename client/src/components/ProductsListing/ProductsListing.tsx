@@ -6,9 +6,13 @@ import { FilterSidebar } from "./FilterSidebar";
 import { Brand } from "../types";
 import { useProducts } from "../../hooks/hookProducts";
 import { useCategories } from "../../hooks/hookCategory";
+import { useSearchParams } from "react-router-dom";
 
 const ProductsListing = () => {
   const { products, loading } = useProducts();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q")?.toLowerCase() || "";
+
   const { name, category, subcategory } = useParams<{
     name?: string;
     category?: string;
@@ -97,12 +101,18 @@ const ProductsListing = () => {
 
       const matchRating = product.rating >= minRating;
 
+      const matchQuery =
+        searchQuery === "" ||
+        product.name.toLowerCase().includes(searchQuery) ||
+        product.description.toLowerCase().includes(searchQuery);
+
       return (
         matchCategory &&
         matchSubCategory &&
         matchBrand &&
         matchPrice &&
-        matchRating
+        matchRating &&
+        matchQuery
       );
     });
   }, [
@@ -112,6 +122,7 @@ const ProductsListing = () => {
     activeSubCategory,
     priceRange,
     minRating,
+    searchQuery, // ← important
   ]);
 
   const sortedProducts = useMemo(() => {

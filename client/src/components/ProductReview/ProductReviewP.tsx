@@ -21,9 +21,9 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState<ProductSize>("M");
   const [quantity, setQuantity] = useState(1);
-  const productColors = product?.colors || [];
+  const productColors = product.productColors?.map((pc) => pc.color);
   const [selectedColor, setSelectedColor] = useState<Color | undefined>(
-    productColors.length > 0 ? productColors[0] : undefined
+    productColors != null ? productColors[0] : undefined
   );
   const handleAddToCart = () => {
     addToCart({
@@ -171,20 +171,20 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                 </div>
 
                 {/* Color Picker */}
-                {product.colors && (
+                {productColors && (
                   <div className="mt-6">
                     <h2 className="text-sm font-medium text-gray-900">Color</h2>
                     <div className="mt-3 flex space-x-2">
-                      {productColors.map((color) => (
+                      {productColors?.map((color) => (
                         <button
-                          key={color.name}
+                          key={color.id}
                           type="button"
                           className={classNames(
-                            color.name,
-                            "relative h-8 w-8 rounded-full",
-                            selectedColor?.name === color.name &&
+                            "relative h-8 w-8 rounded-full border border-gray-300",
+                            selectedColor?.hex === color.hex &&
                               "ring-2 ring-indigo-500 ring-offset-2"
                           )}
+                          style={{ backgroundColor: color.hex }}
                           onClick={() => setSelectedColor(color)}
                           aria-label={color.name}
                         >
