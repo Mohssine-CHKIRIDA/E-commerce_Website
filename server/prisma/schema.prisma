@@ -47,6 +47,7 @@ model User {
   payments   PaymentMethod[]
   orders     Order[]
   reviews    Review[]
+  cartItems CartItem[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
@@ -120,16 +121,19 @@ model Product {
   productColors ProductColor[]
   productSizes  ProductSize[]
   orderItems    OrderItem[]
+  cartItems CartItem[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
 
 model Color {
-  id     Int    @id @default(autoincrement())
-  name   String @unique
-  hex    String @unique
+  id       Int         @id @default(autoincrement())
+  name     String      @unique
+  hex      String      @unique
   products ProductColor[]
+  cartItems CartItem[] 
 }
+
 
 model ProductColor {
   id        Int     @id @default(autoincrement())
@@ -140,10 +144,12 @@ model ProductColor {
 }
 
 model Size {
-  id     Int    @id @default(autoincrement())
-  value  String    @unique
+  id       Int         @id @default(autoincrement())
+  value    String      @unique
   products ProductSize[]
+  cartItems CartItem[] 
 }
+
 
 model ProductSize {
   id        Int     @id @default(autoincrement())
@@ -191,3 +197,26 @@ model OrderItem {
   color     String?
   size      Int?
 }
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  quantity  Int     @default(1)
+
+  color     Color?  @relation(fields: [colorId], references: [id])
+  colorId   Int?    // rendu optionnel
+
+  size      Size?   @relation(fields: [sizeId], references: [id])
+  sizeId    Int?    // rendu optionnel
+
+  addedAt   DateTime @default(now())
+
+  @@unique([userId, productId, colorId, sizeId])
+}
+
+

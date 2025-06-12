@@ -9,12 +9,14 @@ import { DiscountBanner } from "../components/Promos/DiscountBanner";
 import { FeaturesGrid } from "../components/Promos/FeaturesGrid";
 import { NewsletterSignup } from "../components/Promos/NewsletterSignup";
 import { useCategories } from "../hooks/hookCategory";
+import { Toaster } from "react-hot-toast";
 function MainPage() {
   const { categories } = useCategories();
   return (
     <>
       <CartProvider>
         <Header />
+        <Toaster position="top-right" />
         <HeroPromo />
         <Hero />
         <CategoriesSlider categorie={categories} />

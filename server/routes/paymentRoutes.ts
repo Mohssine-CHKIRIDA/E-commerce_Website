@@ -7,21 +7,17 @@ const paymentController = new PaymentController();
 
 // Handle regular payment endpoints with JSON parsing
 router.use(express.json());
-
-// Create payment intent for an order
-router.post('/create-intent/:orderId', paymentController.createPaymentIntent);
-
-// Webhook endpoint - must be before JSON middleware and use raw body parser
 router.post(
     '/webhook',
     express.raw({ type: 'application/json' }),
     stripeWebhookMiddleware
 );
 
-// Process refund
-router.post('/refund/:orderId', paymentController.createRefund);
+router.use(express.json()); // le reste peut utiliser json normalement.
 
-// Get payment status
+router.post('/create-intent/:orderId', paymentController.createPaymentIntent);
+router.post('/refund/:orderId', paymentController.createRefund);
 router.get('/status/:orderId', paymentController.getPaymentStatus);
+
 
 export const paymentRoutes = router; 

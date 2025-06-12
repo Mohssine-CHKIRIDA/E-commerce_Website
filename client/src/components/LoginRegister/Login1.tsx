@@ -1,31 +1,40 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { routes } from "../../Routing/Routing";
-import Footer from "../Footer";
 import Header from "../Header";
+import Footer from "../Footer";
 import { CartProvider } from "../../Context/CartContext";
 import { useAuth } from "../../Context/AuthContext";
+import api from "../../api/axiosInstance";
 
 const Login1: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      alert("Please fill in both fields.");
+      setError("Please fill in both fields.");
       return;
     }
-    const profile = {
-      name: "",
-      email: email,
-      phone: "",
-      birthdate: "",
-      gender: "",
-    };
 
-    login(profile);
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      const token = res.data.accessToken;
+      const user = res.data.user;
+
+      login(token, user);
+      navigate("/"); // Redirection après connexion
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Login failed");
+      }
+    }
   };
 
   return (
@@ -40,27 +49,26 @@ const Login1: React.FC = () => {
             Log In
           </h2>
 
-          <div className="mb-4">
-            <input
-              type="email"
-              placeholder="Email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 mb-6 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-          <div className="mb-6">
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          {error && (
+            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+          )}
 
           <button
             type="submit"
@@ -71,9 +79,12 @@ const Login1: React.FC = () => {
 
           <p className="text-center mt-4 text-sm">
             Don’t have an account?{" "}
-            <a href="#" className="text-blue-500 font-semibold hover:underline">
-              <Link to={routes.register}>Register</Link>
-            </a>
+            <Link
+              to={routes.register}
+              className="text-blue-500 font-semibold hover:underline"
+            >
+              Register
+            </Link>
           </p>
         </form>
       </div>

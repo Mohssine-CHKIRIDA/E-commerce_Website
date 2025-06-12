@@ -23,11 +23,11 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
 };
 
 export async function postReview(review: Review): Promise<any> {
-  const response = await api.post("/api/reviews", review);
+  const response = await api.post("/reviews", review);
   return response.data;
 }
 
 export async function getReviewsByProductId(productId: number): Promise<Review[]> {
-  const response = await api.get(`/api/reviews/${productId}`);
+  const response = await api.get(`/reviews/${productId}`);
   return response.data;
 }

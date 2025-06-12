@@ -22,6 +22,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
   const [selectedSize, setSelectedSize] = useState<ProductSize>("M");
   const [quantity, setQuantity] = useState(1);
   const productColors = product.productColors?.map((pc) => pc.color);
+  const productSizes = product.productSizes?.map((ps) => ps.size);
   const [selectedColor, setSelectedColor] = useState<Color | undefined>(
     productColors != null ? productColors[0] : undefined
   );
@@ -196,7 +197,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                 )}
 
                 {/* Size Picker */}
-                {product.sizes?.length && (
+                {productSizes && (
                   <div className="mt-6">
                     <div className="flex items-center justify-between">
                       <h2 className="text-sm font-medium text-gray-900">
@@ -210,7 +211,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
                       </a>
                     </div>
                     <div className="mt-3 grid grid-cols-6 gap-3">
-                      {product.sizes.map((size) => (
+                      {productSizes.map((size) => (
                         <button
                           key={size.id}
                           onClick={() => setSelectedSize(size.value)}
@@ -287,7 +288,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
               </div>
             </div>
           </div>
-          <ReviewField />
+          <ReviewField productId={product.id} />
         </div>
       </div>
       <Footer />

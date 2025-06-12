@@ -9,10 +9,11 @@ export const postReview = async (req: Request, res: Response) => {
     if (!productId || !userId || !rating || !title || !content) {
        res.status(400).json({ message: "Missing required fields" });
     }
+    const finalUserId = userId || 1; // fallback to anonymous user
 
     const review = await reviewService.createReview({
       productId,
-      userId,
+      userId:finalUserId,
       rating,
       title,
       content,

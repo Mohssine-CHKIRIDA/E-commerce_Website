@@ -1,16 +1,34 @@
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN'
+}
 
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED'
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED'
+}
 export interface Order {
   id: string;
   customerName: string;
   customerEmail: string;
   orderDate: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: Order;
   total: number;
   items: number;
   shippingAddress: string;
 }
 
-export interface Customer {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -50,7 +68,7 @@ export interface Product {
   numReviews: number;
   Reviews:Review[]
   description: string;
-  sizes?: Size[];
+  productSizes?: ProductSize[];
   productColors?: ProductColor[];
 }
 export interface Review {
@@ -77,9 +95,36 @@ export interface ProductColor {
   color: Color;
 }
 export type Size = {
-  id:number,
+  id:number;
   value: number|string;
 };
+export interface ProductSize {
+  productId: number;
+  sizeId: number;
+  size: Size;
+}
+export interface CartItem {
+  id: number;
+  cartItemId: number; // Server-side cart item ID
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+  inStock: number;
+  colorId?: number | null;
+  sizeId?: number | null;
+  color?: {
+    id: number;
+    name: string;
+    hex: string;
+  };
+  size?: {
+    id: number;
+    value: string;
+  };
+}
+
+
 export interface SalesData {
   month: string;
   sales: number;

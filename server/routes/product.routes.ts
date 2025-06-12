@@ -1,6 +1,6 @@
 import express from 'express';
 import * as productController from '../controllers/product.controller';
-import { isAdmin } from '../middleware/auth.middleware';
+import { isAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();
 router.get('/search', productController.searchProducts);
