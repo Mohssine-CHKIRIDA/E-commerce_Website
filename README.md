@@ -4,9 +4,9 @@ Il a été conçu pour simuler une plateforme marchande moderne, offrant une exp
 
 # Architecure du projet
 Le projet est divisé en deux dossiers principaux:
-### client:
+### `client`:
 Frontend développé avec React, fournissant une interface utilisateur dynamique et réactive.
-### server:
+### `server`:
 Backend développé en Node.js avec Express, utilisant Prisma comme ORM pour gérer la base de données PostgreSQL.Le serveur expose une API REST pour la communication avec le frontend.
 
 # Technologies utilisées
@@ -22,9 +22,41 @@ Avant de commencer assurez vous d'avoir:
 ```bash
 git clone [https://github.com/Mohssine-CHKIRIDA/E-commerce_Website.git]
 cd E-commerce_Website
+```
+#### Installer les dependances
+##### Pour le backend
+```bash
+cd server
+npm install
+```
+##### Pour le frontend 
+```bash
+cd ../client
+npm install
+```
+#### Configurer de la base de données
+Dans le dossier `server`, créez le fichier `.env` puis mettez les informations de connexion à POSTGRESQL
+Appliquez les migrations prisma
+```bash
+npx prisma migrate deploy
+```
+#### Lancer les serveurs
+##### `backend`
+```bash
+cd ../server
+npm run dev
+```
+##### `frontend`
+```bash
+cd ../client
+npm run dev
+```
+####  Accéder à l'application
+Ouvrez votre navigateur et allez à http://localhost:5173
 
- 
- 
+
+## Remerciement
+Nous tenons à remercier chaleureusement notre encadrant, Pr. Yann BEN MAISSA , pour son accompagnement, ses conseils précieux et sa disponibilité tout au long de la réalisation de ce projet.
 
 
 
