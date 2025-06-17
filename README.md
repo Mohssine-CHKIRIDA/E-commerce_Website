@@ -20,7 +20,7 @@ Avant de commencer assurez vous d'avoir:
 - **npm** : inclus avec Node.js.
 #### Cloner le dépot
 ```bash
-git clone [https://github.com/Mohssine-CHKIRIDA/E-commerce_Website.git]
+git clone https://github.com/Mohssine-CHKIRIDA/E-commerce_Website.git
 cd E-commerce_Website
 ```
 #### Installer les dependances
