@@ -56,8 +56,14 @@ npm run dev
 Ouvrez votre navigateur et allez à http://localhost:5173
 
 
-## Remerciement
-Nous tenons à remercier chaleureusement notre encadrant, Pr. Yann BEN MAISSA , pour son accompagnement, ses conseils précieux et sa disponibilité tout au long de la réalisation de ce projet.
+## Auteurs du projet
+Ce projet a été réalisé par :
+
+-**Mohssine Chkirida**
+
+-**Masroubi Fahd**
+
+Dans le cadre du module *Projet de développement* , encadré par **Pr. Yann BEN MAISSA**
 
 
 
