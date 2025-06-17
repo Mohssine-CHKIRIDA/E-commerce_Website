@@ -36,6 +36,7 @@ npm install
 ```
 #### Configurer de la base de données
 Dans le dossier `server`, créez le fichier `.env` puis mettez les informations de connexion à POSTGRESQL
+
 Appliquez les migrations prisma
 ```bash
 npx prisma migrate deploy
