@@ -36,7 +36,8 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     { id: "settings", label: "Account Settings", icon: Settings },
   ];
 
-  const getUserInitials = (name: string): string => {
+  const getUserInitials = (name?: string): string => {
+    if (!name) return "??";
     return name
       .split(" ")
       .map((n) => n[0])

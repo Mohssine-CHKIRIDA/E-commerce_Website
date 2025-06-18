@@ -17,15 +17,99 @@ export enum PaymentStatus {
   FAILED = 'FAILED',
   REFUNDED = 'REFUNDED'
 }
-export interface Order {
-  id: string;
+
+export type AddressType = "HOME" | "WORK" | "OTHER";
+
+export interface Address {
+  id: number;
+  name: string;
+  city: string;
+  address: string;
+  isDefault?: boolean;
+  type: AddressType;
+}
+
+export interface AdminOrder {
+  id: number;
   customerName: string;
   customerEmail: string;
   orderDate: string;
-  status: Order;
-  total: number;
-  items: number;
+  totalAmount: number;
+  status: OrderStatus;
+}
+
+export interface AdminOrderDetailed {
+  id: number;
+  customerName: string;
+  customerEmail: string;
   shippingAddress: string;
+  orderDate: string;
+  totalAmount: number;
+  status: OrderStatus;
+  orderItems: OrderItem[];
+}
+
+export interface PaymentMethod {
+  id: number;
+  type: string;
+  last4: string;
+  expiry: string;
+  isDefault: boolean;
+}
+
+export interface OrderItem {
+  id: number;
+  name: string;
+  productId: number;
+  quantity: number;
+  price: number;
+  color?: string;
+  size?: string;
+}
+
+export interface PaymentIntent {
+  id: number;
+  stripeId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  clientSecret: string;
+}
+
+export interface Order {
+  id: number;
+  totalAmount: number;
+  shippingAddress: string;
+  createdAt: string;
+  status: OrderStatus;
+  orderItems: OrderItem[];
+  paymentIntent: PaymentIntent | null;
+}
+
+export interface OrderInput {
+  addressId: number;
+  paymentMethodId: number;
+  items: {
+    productId: number;
+    quantity: number;
+    colorId?: number;
+    sizeId?: number;
+  }[];
+}
+
+export interface Profile {
+  id: number;
+  email: string;
+  name: string;
+  phone: string;
+  birthdate: string;
+  gender: string;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  addresses: Address[];
+  paymentMethods: PaymentMethod[];
+  orders: Order[];
 }
 
 export interface User {
@@ -39,22 +123,26 @@ export interface User {
   status: 'active' | 'inactive';
   lastOrder: string;
 }
-export interface Brand{
-    id:number;
-    name:string;
+
+export interface Brand {
+  id: number;
+  name: string;
 }
-export interface Category{
-   id: number;
-   name: string;
-   imageUrl: string;
-   subcategories?:Subcategory[];
-   brands?:Brand[];
+
+export interface Category {
+  id: number;
+  name: string;
+  imageUrl: string;
+  subcategories?: Subcategory[];
+  brands?: Brand[];
 }
-export interface Subcategory{
-   id: number;
-   name: string;
-   category?:Category
+
+export interface Subcategory {
+  id: number;
+  name: string;
+  category?: Category;
 }
+
 export interface Product {
   id: number;
   name: string;
@@ -66,11 +154,12 @@ export interface Product {
   brand: Brand;
   rating: number;
   numReviews: number;
-  Reviews:Review[]
+  Reviews: Review[];
   description: string;
   productSizes?: ProductSize[];
   productColors?: ProductColor[];
 }
+
 export interface Review {
   id?: number;
   productId: number;
@@ -84,28 +173,33 @@ export interface Review {
     name: string;
   };
 }
+
 export type Color = {
-  id:number,
+  id: number;
   name: string;
-  hex:string;
+  hex: string;
 };
+
 export interface ProductColor {
   productId: number;
   colorId: number;
   color: Color;
 }
+
 export type Size = {
-  id:number;
-  value: number|string;
+  id: number;
+  value: number | string;
 };
+
 export interface ProductSize {
   productId: number;
   sizeId: number;
   size: Size;
 }
+
 export interface CartItem {
   id: number;
-  cartItemId: number; // Server-side cart item ID
+  cartItemId: number;
   name: string;
   price: number;
   quantity: number;
@@ -124,7 +218,6 @@ export interface CartItem {
   };
 }
 
-
 export interface SalesData {
   month: string;
   sales: number;
@@ -137,19 +230,20 @@ export interface CategoryData {
   color: string;
 }
 
-export interface ProductInput{
-  name: string,
-  description: string,
-  price: number,
-  imageUrl:string,
-  rating: number,
-  inStock: number,
-  categoryId: number,
-  subcategoryId: number,
-  brandName: string;  
+export interface ProductInput {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  rating: number;
+  inStock: number;
+  categoryId: number;
+  subcategoryId: number;
+  brandName: string;
   colors: { name: string; hex: string }[];
   sizes: (number | string)[];
-};
+}
+
 export interface ProductEdit {
   id: number;
   name: string;
@@ -159,13 +253,13 @@ export interface ProductEdit {
   imageUrl: string;
   price: number;
   inStock: number;
-
   rating: number;
   numReviews: number;
   description: string;
   sizes?: Size[];
   colors?: Color[];
 }
+
 function isCompleteProductEdit(product: Partial<ProductEdit>): product is ProductEdit {
   return (
     typeof product.name === "string" &&
@@ -176,7 +270,6 @@ function isCompleteProductEdit(product: Partial<ProductEdit>): product is Produc
     typeof product.inStock === "number" &&
     typeof product.category === "object" && typeof product.category.id === "number" &&
     typeof product.subcategory === "object" && typeof product.subcategory.id === "number" &&
-    // Accept brand with either id or at least a name string
     typeof product.brand === "object" &&
     (
       (typeof product.brand.id === "number") ||
@@ -200,12 +293,10 @@ export async function convertToProductInput(product: Partial<ProductEdit>): Prom
     categoryId: product.category.id,
     subcategoryId: product.subcategory.id,
     brandName: product.brand.name,
-
     colors: (product.colors || []).map((color) => ({
       name: color.name,
       hex: color.hex,
     })),
-
     sizes: (product.sizes || []).map((size) => {
       if (typeof size === "number") {
         return size;
@@ -223,5 +314,3 @@ export async function convertToProductInput(product: Partial<ProductEdit>): Prom
     }),
   };
 }
-
-

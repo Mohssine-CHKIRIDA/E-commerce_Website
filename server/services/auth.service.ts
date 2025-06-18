@@ -31,8 +31,17 @@ export const loginUser = async (email: string, password: string) => {
   const accessToken = generateAccessToken({ id: user.id, email: user.email, role: user.role });
   const refreshToken = generateRefreshToken({ id: user.id, email: user.email, role: user.role });
 
-  return { accessToken, refreshToken };
+  const userData = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+  };
+
+  return { accessToken, refreshToken, user: userData };
 };
+
+
 export const registerUser = async (data: {
   name: string;
   email: string;
@@ -58,6 +67,7 @@ export const registerUser = async (data: {
 
   return { accessToken, refreshToken };
 };
+
 export const getUserProfile = async (userId: number) => {
   return prisma.user.findUnique({
     where: { id: userId },
@@ -71,18 +81,62 @@ export const getUserProfile = async (userId: number) => {
       role: true,
       createdAt: true,
       updatedAt: true,
+      addresses: {
+        select: {
+          id: true,
+          type: true,
+          name: true,
+          address: true,
+          city: true,
+          isDefault: true,
+        },
+      },
+      payments: {
+        select: {
+          id: true,
+          type: true,
+          last4: true,
+          expiry: true,
+          isDefault: true,
+        },
+      },
+      orders: {
+  select: {
+    id: true,
+    totalAmount: true,
+    status: true,
+    paymentIntent: {
+      select: {
+        status: true,  // c’est le payment status réel
+        stripeId: true,
+        amount: true,
+      }
+    },
+    shippingAddress: true,
+    createdAt: true,
+    orderItems: {
+      select: {
+        id: true,
+        quantity: true,
+        price: true,
+        color: true,
+        size: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
+    },
+  },
+}
+
     },
   });
 };
-export const refreshAccessToken = (refreshToken: string) => {
-  const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as {
-    id: number;
-    email: string;
-    role: string;
-  };
 
-  return generateAccessToken(decoded);
-};
 export const updateUserProfile = async (
   userId: number,
   data: {
@@ -111,4 +165,23 @@ export const updateUserProfile = async (
       createdAt: true,
     },
   });
+};
+
+export const refreshAccessToken = (refreshToken: string) => {
+  const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as {
+    id: number;
+    email: string;
+    role: string;
+    iat?: number;
+    exp?: number;
+  };
+
+  // Extract only the user data, excluding JWT metadata (iat, exp)
+  const userData = {
+    id: decoded.id,
+    email: decoded.email,
+    role: decoded.role
+  };
+
+  return generateAccessToken(userData);
 };

@@ -1,33 +1,51 @@
 import React, { useState } from "react";
 import { Plus, CreditCard } from "lucide-react";
-import { PaymentMethod } from "./types";
+import { PaymentMethod } from "../types";
 
 interface PaymentMethodsComponentProps {
   paymentMethods: PaymentMethod[];
-  setPaymentMethods: (paymentMethods: PaymentMethod[]) => void;
+  onAddPaymentMethod: (
+    paymentMethod: Omit<PaymentMethod, "id">
+  ) => Promise<void>;
+  onUpdatePaymentMethod: (
+    id: number,
+    paymentMethod: Partial<PaymentMethod>
+  ) => Promise<void>;
+  onDeletePaymentMethod: (id: number) => Promise<void>;
 }
 
 const PaymentMethodsComponent: React.FC<PaymentMethodsComponentProps> = ({
   paymentMethods,
-  setPaymentMethods,
+  onAddPaymentMethod,
+  onUpdatePaymentMethod,
+  onDeletePaymentMethod,
 }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState<Partial<PaymentMethod>>({
     type: "",
     last4: "",
-    expiry: "",
     isDefault: false,
+    expiry: "",
   });
 
-  const removePaymentMethod = (id: number): void => {
-    setPaymentMethods(paymentMethods.filter((pm) => pm.id !== id));
+  const removePaymentMethod = async (id: number): Promise<void> => {
+    try {
+      await onDeletePaymentMethod(id);
+    } catch (error) {
+      console.error("Failed to remove payment method:", error);
+    }
   };
 
   const handleAddNewCard = (): void => {
     setShowAddForm(true);
     setEditingId(null);
-    setFormData({ type: "", last4: "", expiry: "", isDefault: false });
+    setFormData({
+      type: "",
+      last4: "",
+      isDefault: false,
+      expiry: "",
+    });
   };
 
   const handleEditPaymentMethod = (id: number): void => {
@@ -42,54 +60,58 @@ const PaymentMethodsComponent: React.FC<PaymentMethodsComponentProps> = ({
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
     if (!formData.type || !formData.last4 || !formData.expiry) {
-      alert("Please complete all fields.");
+      alert("Please complete all required fields.");
       return;
     }
 
-    if (formData.last4.length !== 4 || isNaN(Number(formData.last4))) {
-      alert("Last 4 digits must be a 4-digit number.");
+    if (formData.last4 && formData.last4.length < 4) {
+      alert("Account number must be at least 4 characters.");
       return;
     }
 
-    const updatedPaymentMethods = paymentMethods.map((pm) =>
-      formData.isDefault ? { ...pm, isDefault: false } : pm
-    );
+    try {
+      if (editingId !== null) {
+        await onUpdatePaymentMethod(editingId, formData);
+        setEditingId(null);
+      } else {
+        await onAddPaymentMethod(formData as Omit<PaymentMethod, "id">);
+      }
 
-    if (editingId !== null) {
-      setPaymentMethods(
-        updatedPaymentMethods.map((pm) =>
-          pm.id === editingId ? { ...pm, ...formData, id: editingId } : pm
-        )
-      );
-      setEditingId(null);
-    } else {
-      const newPayment: PaymentMethod = {
-        id: Date.now(),
-        type: formData.type || "",
-        last4: formData.last4 || "",
-        expiry: formData.expiry || "",
-        isDefault: formData.isDefault || false,
-      };
-      setPaymentMethods([...updatedPaymentMethods, newPayment]);
+      setFormData({
+        type: "",
+        last4: "",
+        isDefault: false,
+        expiry: "",
+      });
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Failed to save payment method:", error);
     }
-
-    setFormData({ type: "", last4: "", expiry: "", isDefault: false });
-    setShowAddForm(false);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setShowAddForm(false);
-    setFormData({ type: "", last4: "", expiry: "", isDefault: false });
+    setFormData({
+      type: "",
+      last4: "",
+      isDefault: false,
+      expiry: "",
+    });
+  };
+
+  const getDisplayAccountNumber = (last4?: string) => {
+    if (!last4) return "";
+    return last4.length > 4 ? `••••${last4.slice(-4)}` : last4;
   };
 
   return (
@@ -101,92 +123,64 @@ const PaymentMethodsComponent: React.FC<PaymentMethodsComponentProps> = ({
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={16} />
-          Add New Card
+          Add New Payment Method
         </button>
       </div>
 
       {(showAddForm || editingId !== null) && (
         <div className="mb-6 space-y-4 border p-4 rounded-lg">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Card Type</label>
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleFormChange}
-              className="border p-2 rounded"
-            >
-              <option value="">Select card type</option>
-              <option value="Visa">Visa</option>
-              <option value="MasterCard">MasterCard</option>
-              <option value="American Express">American Express</option>
-              <option value="Discover">Discover</option>
-            </select>
-
-            <label className="text-sm font-medium">Expiry Date</label>
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Payment Type
+              </label>
               <select
-                name="expiryMonth"
-                value={formData.expiry?.split("/")[0] || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    expiry: `${e.target.value}/${
-                      prev.expiry?.split("/")[1] || ""
-                    }`,
-                  }))
-                }
-                className="border p-2 rounded w-1/2"
+                name="type"
+                value={formData.type || ""}
+                onChange={handleFormChange}
+                className="w-full border p-2 rounded"
               >
-                <option value="">MM</option>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={String(i + 1).padStart(2, "0")}>
-                    {String(i + 1).padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                name="expiryYear"
-                value={formData.expiry?.split("/")[1] || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    expiry: `${prev.expiry?.split("/")[0] || ""}/${
-                      e.target.value
-                    }`,
-                  }))
-                }
-                className="border p-2 rounded w-1/2"
-              >
-                <option value="">YY</option>
-                {Array.from({ length: 10 }, (_, i) => {
-                  const year = new Date().getFullYear() + i;
-                  return (
-                    <option key={i} value={String(year).slice(2)}>
-                      {year}
-                    </option>
-                  );
-                })}
+                <option value="">Select payment type</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Bank Account">Bank Account</option>
+                <option value="Digital Wallet">Digital Wallet</option>
               </select>
             </div>
-
-            <input
-              name="last4"
-              value={formData.last4}
-              onChange={handleFormChange}
-              placeholder="Last 4 digits"
-              className="border p-2 rounded"
-            />
-
-            <label className="inline-flex items-center gap-2">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {formData.type === "Bank Account"
+                  ? "Account Number"
+                  : "Card Number (last 4 digits)"}
+              </label>
               <input
-                type="checkbox"
-                name="isDefault"
-                checked={formData.isDefault}
+                name="last4"
+                value={formData.last4 || ""}
                 onChange={handleFormChange}
+                placeholder={
+                  formData.type === "Bank Account"
+                    ? "Account number"
+                    : "Last 4 digits"
+                }
+                className="w-full border p-2 rounded"
               />
-              Default
-            </label>
+            </div>
+
+            {(formData.type === "Credit Card" ||
+              formData.type === "Debit Card") && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Expiry Date
+                </label>
+                <input
+                  name="expiry"
+                  type="month"
+                  value={formData.expiry || ""}
+                  onChange={handleFormChange}
+                  className="w-full border p-2 rounded"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2">
@@ -207,9 +201,9 @@ const PaymentMethodsComponent: React.FC<PaymentMethodsComponentProps> = ({
       )}
 
       <div className="space-y-4">
-        {paymentMethods.map((payment) => (
+        {paymentMethods.map((payment, index) => (
           <div
-            key={payment.id}
+            key={payment.id ?? `temp-${index}`}
             className="border border-gray-200 rounded-lg p-4 flex justify-between items-center"
           >
             <div className="flex items-center gap-4">
@@ -217,16 +211,14 @@ const PaymentMethodsComponent: React.FC<PaymentMethodsComponentProps> = ({
                 <CreditCard size={16} className="text-gray-600" />
               </div>
               <div>
-                <p className="font-medium text-gray-900">
-                  {payment.type} •••• {payment.last4}
-                </p>
+                <p className="font-medium text-gray-900">{payment.type}</p>
                 <p className="text-sm text-gray-600">
-                  Expires {payment.expiry}
+                  {getDisplayAccountNumber(payment.last4)}
                 </p>
-                {payment.isDefault && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                    Default
-                  </span>
+                {payment.expiry && (
+                  <p className="text-sm text-gray-600">
+                    Expires {payment.expiry}
+                  </p>
                 )}
               </div>
             </div>

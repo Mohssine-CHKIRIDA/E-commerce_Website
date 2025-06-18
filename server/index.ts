@@ -10,6 +10,10 @@ import { Role } from '@prisma/client';
 import cartRoutes from './routes/cart.routes';
 import { authMiddleware } from './middleware/authMiddleware';
 import authRoutes from './routes/auth.routes';
+import addressRoutes from './routes/address.route'
+import  paymentMethodeRoutes  from './routes/paymentMethode.route';
+import orderRoutes from './routes/order.route'
+import customerRoutes from './routes/customer.route';
 
 
 declare global {
@@ -47,7 +51,10 @@ app.use('/api/products', productRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/cart', authMiddleware, cartRoutes);
-
+app.use('/api/addresses', authMiddleware,addressRoutes);
+app.use('/api/paymentsMethod', authMiddleware,paymentMethodeRoutes);
+app.use('/api/orders', orderRoutes);
+app.use("/api/customers", customerRoutes);
 
 
 

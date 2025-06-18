@@ -1,5 +1,4 @@
 import api from './axiosInstance';
-import { Profile } from '../Context/AuthContext';
 
 // Login user and return token + user profile
 export async function login(email: string, password: string) {
@@ -59,24 +58,4 @@ export async function logout() {
   }
 }
 
-// Fetch authenticated user's profile
-export async function getProfile(): Promise<Profile> {
-  try {
-    const res = await api.get('/auth/profile');
-    return res.data;
-  } catch (error) {
-    console.error('Fetching profile failed:', error);
-    throw new Error('Unable to fetch profile');
-  }
-}
 
-// Update authenticated user's profile
-export async function updateProfile(profile: Profile): Promise<Profile> {
-  try {
-    const res = await api.put('/auth/profile', profile);
-    return res.data;
-  } catch (error) {
-    console.error('Updating profile failed:', error);
-    throw new Error('Unable to update profile');
-  }
-}

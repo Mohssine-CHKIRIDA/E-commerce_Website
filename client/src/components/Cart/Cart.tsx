@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { CartItem as product, useCart } from "../../Context/CartContext";
+import { useProfileHook } from "../../hooks/hookProfile";
+import { usePlaceOrder } from "../../hooks/hookOrder";
+import { Order, OrderStatus, PaymentStatus } from "../types";
+import { v4 as uuidv4 } from "uuid";
 
 interface CartItemProps {
   item: product;
@@ -45,7 +49,7 @@ const CartItem: React.FC<CartItemProps> = ({
             onChange={handleQuantityChange}
             className="border border-gray-300 rounded-md p-2 w-16"
           >
-            {[...Array(item.Instock)].map((_, i) => (
+            {[...Array(item.inStock)].map((_, i) => (
               <option key={i} value={i + 1}>
                 {i + 1}
               </option>
@@ -202,14 +206,69 @@ const CartPageIntern: React.FC = () => {
       alert("Invalid coupon code.");
     }
   };
+  const { place } = usePlaceOrder();
 
-  const handleCheckout = () => {
-    alert(
-      "Proceeding to checkout with " +
-        cartItems.length +
-        " items for a total of $" +
-        total.toFixed(2)
-    );
+  const { profile, addresses, paymentMethods } = useProfileHook();
+
+  const handleCheckout = async () => {
+    if (!profile) {
+      alert("Vous devez être connecté pour passer commande.");
+      return;
+    }
+
+    // Par exemple, prendre la première adresse et moyen de paiement par défaut
+    const shippingAddress = addresses.find((add) => add.isDefault === true);
+    console.log("Shipping Address:", shippingAddress);
+    const paymentMethod = paymentMethods.at(0); // Prendre le premier moyen de paiement
+
+    console.log("Payment Method:", paymentMethod);
+    if (!shippingAddress || !paymentMethod) {
+      alert(
+        "Veuillez ajouter une adresse et un moyen de paiement avant de passer commande."
+      );
+      return;
+    }
+
+    // Préparer la commande au format attendu par l'API
+    const orderInput: Order = {
+      id: 0, // ou undefined/null si créé côté backend
+      totalAmount: cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      ),
+      shippingAddress: shippingAddress.address, // ou shippingAddress comme string (à adapter selon ta structure)
+      createdAt: new Date().toISOString(), // ou laissé vide pour le backend
+      status: OrderStatus.PENDING, // ou autre valeur OrderStatus par défaut
+      orderItems: cartItems.map((item) => ({
+        id: item.id, // si ce n’est pas l’id de l’order item, mettre undefined et créer côté backend
+        name: item.name, // si disponible dans cartItems
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        color: item.color ? item.color.name : undefined,
+        size: item.size ? item.size.value : undefined,
+      })),
+      paymentIntent: {
+        id: 0, // ou null si pas encore créé
+        stripeId: uuidv4(), // à remplir selon paiement
+        amount: cartItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        ),
+        currency: "usd", // adapter selon contexte
+        status: PaymentStatus.PENDING, // par défaut ou selon statut
+        clientSecret: "", // à récupérer du backend ou Stripe
+      },
+    };
+
+    try {
+      await place(orderInput);
+      alert("Commande passée avec succès !");
+      clearCart();
+    } catch (err) {
+      alert("Erreur lors de la commande, veuillez réessayer.");
+      console.error(err);
+    }
   };
 
   return (

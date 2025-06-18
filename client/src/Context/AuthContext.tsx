@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Optionally call backend to get user profile and validate token
     api
-      .get("/profile") // protected endpoint returning user profile
+      .get("auth/profile") // protected endpoint returning user profile
       .then((res) => {
         setUserProfile(res.data);
         setIsAuthenticated(true);

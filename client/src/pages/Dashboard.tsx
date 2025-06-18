@@ -1,45 +1,43 @@
 import { useState } from "react";
 import { Sidebar } from "../components/AdminDashboard/Sidebar";
 import { Header } from "../components/AdminDashboard/Header";
-import { OverviewTab } from "../components/AdminDashboard/OverviewTab";
 import { ProductsTable } from "../components/AdminDashboard/ProductsList";
 import { OrdersTablePage } from "../components/AdminDashboard/OrdersTablePage";
-import {
-  TabType,
-  Order,
-  SalesData,
-  CategoryData,
-} from "../components/AdminDashboard/types";
+import { TabType } from "../components/AdminDashboard/types";
 import { CustomersTable } from "../components/AdminDashboard/CustomersTable";
 import { ProductCreationForm } from "../components/AdminDashboard/ProductCreatePage";
 import { useProducts } from "../hooks/hookProducts";
-import { Product } from "../components/types";
+import { AdminOrderDetailed, Product } from "../components/types";
+import { useOrders } from "../hooks/hookOrder";
+import { useCustomer } from "../hooks/hookCustomer";
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-
+  const { customers } = useCustomer();
   const { products, loading } = useProducts();
+  const { orders } = useOrders();
+
+  const recentOrders: AdminOrderDetailed[] = orders.map((order) => ({
+    id: order.id,
+    customerName: order.shippingAddress.split(",")[0] || "N/A", // à ajuster selon ton format
+    customerEmail: "unknown@example.com", // si `user` est lié à la commande
+    shippingAddress: order.shippingAddress,
+    orderDate: order.createdAt,
+    totalAmount: order.totalAmount,
+    status: order.status, // Assure-toi que c’est bien du type OrderStatus
+    orderItems: order.orderItems,
+  }));
 
   if (loading) return <p>Loading...</p>;
-  const salesData: SalesData[] = [];
-  const categoryData: CategoryData[] = [];
-  const recentOrders: Order[] = [];
+
   const topProducts: Product[] = products.filter(
     (product) => product.rating > 4
   );
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "overview":
-        return (
-          <OverviewTab
-            salesData={salesData}
-            categoryData={categoryData}
-            recentOrders={recentOrders}
-          />
-        );
       case "products-list":
         return (
           <ProductsTable
@@ -53,9 +51,9 @@ const Dashboard: React.FC = () => {
       case "products-edit":
         return <ProductCreationForm productEdit={editingProduct} />;
       case "orders":
-        return <OrdersTablePage />;
+        return <OrdersTablePage initialOrders={recentOrders} />; // ✅ PASSING DATA
       case "customers":
-        return <CustomersTable />;
+        return <CustomersTable customers={customers} />;
       default:
         return null;
     }

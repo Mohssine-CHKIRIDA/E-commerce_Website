@@ -11,66 +11,14 @@ import {
 } from "lucide-react";
 import { Customer } from "./types";
 
-const sampleCustomers: Customer[] = [
-  {
-    id: "CUST-001",
-    name: "John Doe",
-    email: "john.doe@email.com",
-    phone: "+1 (555) 123-4567",
-    joinDate: "2024-03-15",
-    totalOrders: 12,
-    totalSpent: 2450.8,
-    status: "active",
-    lastOrder: "2025-06-01",
-  },
-  {
-    id: "CUST-002",
-    name: "Jane Smith",
-    email: "jane.smith@email.com",
-    phone: "+1 (555) 234-5678",
-    joinDate: "2024-01-22",
-    totalOrders: 8,
-    totalSpent: 1875.5,
-    status: "active",
-    lastOrder: "2025-06-01",
-  },
-  {
-    id: "CUST-003",
-    name: "Mike Johnson",
-    email: "mike.j@email.com",
-    phone: "+1 (555) 345-6789",
-    joinDate: "2024-05-10",
-    totalOrders: 5,
-    totalSpent: 925.75,
-    status: "active",
-    lastOrder: "2025-05-31",
-  },
-  {
-    id: "CUST-004",
-    name: "Sarah Wilson",
-    email: "sarah.w@email.com",
-    phone: "+1 (555) 456-7890",
-    joinDate: "2023-11-08",
-    totalOrders: 15,
-    totalSpent: 3200.25,
-    status: "active",
-    lastOrder: "2025-05-30",
-  },
-  {
-    id: "CUST-005",
-    name: "Tom Brown",
-    email: "tom.brown@email.com",
-    phone: "+1 (555) 567-8901",
-    joinDate: "2024-02-14",
-    totalOrders: 3,
-    totalSpent: 450.0,
-    status: "inactive",
-    lastOrder: "2025-03-15",
-  },
-];
+interface CustomersTableProps {
+  customers: Customer[];
+}
 
-export const CustomersTable: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>(sampleCustomers);
+export const CustomersTable: React.FC<CustomersTableProps> = ({
+  customers: initialCustomers,
+}) => {
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 

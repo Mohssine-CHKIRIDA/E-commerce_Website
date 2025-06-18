@@ -1,8 +1,8 @@
 import React from "react";
-import { Order } from "./types";
+import { AdminOrder } from "../types";
 
 interface OrdersTableProps {
-  orders: Order[];
+  orders: AdminOrder[];
   title?: string;
 }
 
@@ -10,16 +10,18 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   orders,
   title = "Recent Orders",
 }) => {
-  const getStatusColor = (status: Order["status"]) => {
+  const getStatusColor = (status: AdminOrder["status"]) => {
     switch (status) {
-      case "delivered":
+      case "DELIVERED":
         return "bg-green-100 text-green-800";
-      case "shipped":
+      case "SHIPPED":
         return "bg-blue-100 text-blue-800";
-      case "processing":
+      case "PROCESSING":
         return "bg-yellow-100 text-yellow-800";
-      case "pending":
+      case "PENDING":
         return "bg-gray-100 text-gray-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -61,7 +63,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   {order.customerName}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${order.total}
+                  ${order.totalAmount.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -73,7 +75,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {order.orderDate}
+                  {new Date(order.orderDate).toLocaleDateString()}
                 </td>
               </tr>
             ))}

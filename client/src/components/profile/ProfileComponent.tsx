@@ -1,26 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Edit2 } from "lucide-react";
-import { Profile } from "./types";
+import { Profile } from "../types";
 
 interface ProfileComponentProps {
   profile: Profile;
-  setProfile: (profile: Profile) => void;
+  setProfile: (profile: Partial<Profile>) => void;
 }
 
 const ProfileComponent: React.FC<ProfileComponentProps> = ({
   profile,
   setProfile,
 }) => {
-  const [editingProfile, setEditingProfile] = useState<boolean>(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<Profile | null>(null);
 
-  const handleProfileSave = (): void => {
+  useEffect(() => {
+    if (profile) {
+      setFormData(profile);
+    }
+  }, [profile]);
+
+  const handleProfileSave = async () => {
+    if (!formData) return;
+
+    setIsSaving(true);
+    try {
+      setProfile(formData);
+      setEditingProfile(false);
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof Profile, value: string) => {
+    if (!formData) return;
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleCancel = () => {
+    setFormData(profile);
     setEditingProfile(false);
-    // Save logic would go here
   };
+  console.log("formData in render:", formData);
 
-  const handleInputChange = (field: keyof Profile, value: string): void => {
-    setProfile({ ...profile, [field]: value });
-  };
+  if (!formData) return <p>Loading profile...</p>;
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -29,7 +55,9 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
           Profile Information
         </h2>
         <button
-          onClick={() => setEditingProfile(!editingProfile)}
+          onClick={() =>
+            editingProfile ? handleCancel() : setEditingProfile(true)
+          }
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Edit2 size={16} />
@@ -44,7 +72,8 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
           </label>
           <input
             type="text"
-            value={profile.name}
+            name="name"
+            value={formData.name ?? ""}
             onChange={(e) => handleInputChange("name", e.target.value)}
             disabled={!editingProfile}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
@@ -57,7 +86,8 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
           </label>
           <input
             type="email"
-            value={profile.email}
+            name="email"
+            value={formData.email ?? ""}
             onChange={(e) => handleInputChange("email", e.target.value)}
             disabled={!editingProfile}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
@@ -70,7 +100,8 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
           </label>
           <input
             type="tel"
-            value={profile.phone}
+            name="phone"
+            value={formData.phone ?? ""}
             onChange={(e) => handleInputChange("phone", e.target.value)}
             disabled={!editingProfile}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
@@ -83,11 +114,35 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
           </label>
           <input
             type="date"
-            value={profile.birthdate}
+            name="birthdate"
+            value={
+              typeof formData.birthdate === "string"
+                ? formData.birthdate.slice(0, 10)
+                : ""
+            }
             onChange={(e) => handleInputChange("birthdate", e.target.value)}
             disabled={!editingProfile}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Gender
+          </label>
+          <select
+            name="gender"
+            value={formData.gender ?? ""}
+            onChange={(e) => handleInputChange("gender", e.target.value)}
+            disabled={!editingProfile}
+            className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+          >
+            <option value="">Select...</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+            <option value="prefer_not_say">Prefer not to say</option>
+          </select>
         </div>
       </div>
 
@@ -95,12 +150,13 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
         <div className="mt-6 flex gap-3">
           <button
             onClick={handleProfileSave}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            disabled={isSaving}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
           >
-            Save Changes
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
           <button
-            onClick={() => setEditingProfile(false)}
+            onClick={handleCancel}
             className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
           >
             Cancel

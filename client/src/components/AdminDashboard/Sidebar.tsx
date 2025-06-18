@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
     >
       <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">E-Shop Admin</h1>
+        <h1 className="text-xl font-bold text-gray-900">My Brand Admin</h1>
         <button
           onClick={() => setSidebarOpen(false)}
           className="lg:hidden p-2 rounded-md hover:bg-gray-100"

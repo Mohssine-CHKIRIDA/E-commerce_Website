@@ -12,95 +12,81 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Dialog } from "@headlessui/react";
+import { AdminOrderDetailed, OrderStatus } from "../types";
+import { useDeleteOrder, useUpdateOrder } from "../../hooks/hookOrder";
+interface OrdersTablePageProps {
+  initialOrders: AdminOrderDetailed[];
+}
 
-type Order = {
-  id: string;
-  customerName: string;
-  customerEmail: string;
-  orderDate: string;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  total: number;
-  items: number;
-  shippingAddress: string;
-  products?: { name: string; quantity: number; price: number }[];
-};
-
-const sampleOrders: Order[] = [
-  {
-    id: "ORD-001",
-    customerName: "John Doe",
-    customerEmail: "john.doe@email.com",
-    orderDate: "2025-06-01",
-    status: "delivered",
-    total: 299.99,
-    items: 3,
-    shippingAddress: "123 Main St, New York, NY",
-    products: [
-      { name: "Laptop", quantity: 1, price: 199.99 },
-      { name: "Mouse", quantity: 2, price: 50 },
-    ],
-  },
-  {
-    id: "ORD-002",
-    customerName: "Jane Smith",
-    customerEmail: "jane.smith@email.com",
-    orderDate: "2025-06-01",
-    status: "shipped",
-    total: 149.5,
-    items: 2,
-    shippingAddress: "456 Oak Ave, Los Angeles, CA",
-    products: [{ name: "Headphones", quantity: 2, price: 74.75 }],
-  },
-];
-
-export const OrdersTablePage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>(sampleOrders);
+export const OrdersTablePage: React.FC<OrdersTablePageProps> = ({
+  initialOrders,
+}) => {
+  const [orders, setOrders] = useState<AdminOrderDetailed[]>(initialOrders);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [viewingOrder, setViewingOrder] = useState<AdminOrderDetailed | null>(
+    null
+  );
+  const [editingOrder, setEditingOrder] = useState<AdminOrderDetailed | null>(
+    null
+  );
+  const [newStatus, setNewStatus] = useState<AdminOrderDetailed["status"]>(
+    OrderStatus.PENDING
+  );
+  const { update } = useUpdateOrder();
+  const { remove } = useDeleteOrder();
 
-  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
-  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-  const [newStatus, setNewStatus] = useState<Order["status"]>("pending");
-
-  const handleDelete = (id: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
+  const handleDelete = async (id: number) => {
+    const success = await remove(id);
+    if (success) {
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    }
   };
 
-  const handleEditStatus = () => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === editingOrder?.id ? { ...order, status: newStatus } : order
-      )
-    );
+  const handleEditStatus = async () => {
+    if (!editingOrder) return;
+
+    const updated = await update(editingOrder.id, {
+      status: newStatus,
+    });
+
+    if (updated) {
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === editingOrder.id ? { ...order, status: newStatus } : order
+        )
+      );
+    }
+
     setEditingOrder(null);
   };
 
-  const getStatusIcon = (status: Order["status"]) => {
+  const getStatusIcon = (status: AdminOrderDetailed["status"]) => {
     switch (status) {
-      case "pending":
+      case "PENDING":
         return <Clock className="w-4 h-4 text-yellow-500" />;
-      case "processing":
+      case "PROCESSING":
         return <AlertCircle className="w-4 h-4 text-blue-500" />;
-      case "shipped":
+      case "SHIPPED":
         return <Package className="w-4 h-4 text-purple-500" />;
-      case "delivered":
+      case "DELIVERED":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case "cancelled":
+      case "CANCELLED":
         return <XCircle className="w-4 h-4 text-red-500" />;
     }
   };
 
-  const getStatusBadgeClass = (status: Order["status"]) => {
+  const getStatusBadgeClass = (status: AdminOrderDetailed["status"]) => {
     switch (status) {
-      case "pending":
+      case "PENDING":
         return "bg-yellow-100 text-yellow-800";
-      case "processing":
+      case "PROCESSING":
         return "bg-blue-100 text-blue-800";
-      case "shipped":
+      case "SHIPPED":
         return "bg-purple-100 text-purple-800";
-      case "delivered":
+      case "DELIVERED":
         return "bg-green-100 text-green-800";
-      case "cancelled":
+      case "CANCELLED":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -110,16 +96,21 @@ export const OrdersTablePage: React.FC = () => {
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus =
       statusFilter === "all" || order.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
+  const filteredOrdersItemsNameFunc = (o: AdminOrderDetailed): string[] => {
+    return o.orderItems.map((item) => item.name);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold text-gray-900">Orders Management</h2>
+
       <div className="flex flex-col sm:flex-row gap-4 mt-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
@@ -137,11 +128,11 @@ export const OrdersTablePage: React.FC = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
         >
           <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="pending">PENDING</option>
+          <option value="processing">PROCESSING</option>
+          <option value="shipped">SHIPPED</option>
+          <option value="delivered">DELIVERED</option>
+          <option value="cancelled">CANCELLED</option>
         </select>
       </div>
 
@@ -170,16 +161,12 @@ export const OrdersTablePage: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredOrders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">
                   {order.id}
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium">
-                    {order.customerName}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {order.customerEmail}
-                  </div>
+                <td className="px-6 py-4 text-sm">
+                  <div className="font-medium">{order.customerName}</div>
+                  <div className="text-gray-500">{order.customerEmail}</div>
                 </td>
                 <td className="px-6 py-4 text-sm">
                   {new Date(order.orderDate).toLocaleDateString()}
@@ -194,9 +181,11 @@ export const OrdersTablePage: React.FC = () => {
                     <span className="ml-1 capitalize">{order.status}</span>
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm">{order.items}</td>
+                <td className="px-6 py-4 text-sm">
+                  {filteredOrdersItemsNameFunc(order)}
+                </td>
                 <td className="px-6 py-4 text-sm font-medium">
-                  ${order.total.toFixed(2)}
+                  ${order.totalAmount.toFixed(2)}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center space-x-2">
@@ -229,7 +218,7 @@ export const OrdersTablePage: React.FC = () => {
         </table>
       </div>
 
-      {/* View Dialog */}
+      {/* View Order Modal */}
       <Dialog
         open={!!viewingOrder}
         onClose={() => setViewingOrder(null)}
@@ -253,16 +242,20 @@ export const OrdersTablePage: React.FC = () => {
                   <strong>Status:</strong> {viewingOrder.status}
                 </p>
                 <p>
-                  <strong>Total:</strong> ${viewingOrder.total.toFixed(2)}
+                  <strong>Total:</strong> ${viewingOrder.totalAmount.toFixed(2)}
                 </p>
                 <hr />
                 <p className="font-semibold mt-2">Products:</p>
                 <ul className="list-disc pl-5">
-                  {viewingOrder.products?.map((p, idx) => (
-                    <li key={idx}>
-                      {p.name} x{p.quantity} — ${p.price.toFixed(2)}
-                    </li>
-                  )) || <li>No product details</li>}
+                  {viewingOrder.orderItems?.length ? (
+                    viewingOrder.orderItems.map((p, i) => (
+                      <li key={i}>
+                        {p.name} x{p.quantity} — ${p.price.toFixed(2)}
+                      </li>
+                    ))
+                  ) : (
+                    <li>No product details</li>
+                  )}
                 </ul>
               </div>
             )}
@@ -278,7 +271,7 @@ export const OrdersTablePage: React.FC = () => {
         </div>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* Edit Status Modal */}
       <Dialog
         open={!!editingOrder}
         onClose={() => setEditingOrder(null)}
@@ -293,19 +286,19 @@ export const OrdersTablePage: React.FC = () => {
               <select
                 value={newStatus}
                 onChange={(e) =>
-                  setNewStatus(e.target.value as Order["status"])
+                  setNewStatus(e.target.value as AdminOrderDetailed["status"])
                 }
                 className="w-full p-2 border rounded"
               >
                 {[
-                  "pending",
-                  "processing",
-                  "shipped",
-                  "delivered",
-                  "cancelled",
-                ].map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                  "PENDING",
+                  "PROCESSING",
+                  "SHIPPED",
+                  "DELIVERED",
+                  "CANCELLED",
+                ].map((status) => (
+                  <option key={status} value={status}>
+                    {status}
                   </option>
                 ))}
               </select>
@@ -328,6 +321,7 @@ export const OrdersTablePage: React.FC = () => {
         </div>
       </Dialog>
 
+      {/* No Orders Fallback */}
       {filteredOrders.length === 0 && (
         <div className="text-center py-12">
           <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />

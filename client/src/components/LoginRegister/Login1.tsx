@@ -23,11 +23,17 @@ const Login1: React.FC = () => {
 
     try {
       const res = await api.post("/auth/login", { email, password });
+
       const token = res.data.accessToken;
       const user = res.data.user;
 
       login(token, user);
-      navigate("/"); // Redirection après connexion
+
+      if (user.role === "ADMIN") {
+        navigate("/dashboard"); // ou la route exacte de ton tableau de bord admin
+      } else {
+        navigate("/"); // utilisateur classique
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

@@ -7,6 +7,7 @@ import {
 import { HiMinusSm, HiPlusSm } from "react-icons/hi";
 import { useCart } from "../../Context/CartContext";
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   isOpen: boolean;
@@ -27,7 +28,6 @@ export default function CartSlide({ isOpen, setIsOpen }: Props) {
     clearError,
   } = useCart();
 
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
   const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
   const [showErrorDetails, setShowErrorDetails] = useState(false);
@@ -57,24 +57,6 @@ export default function CartSlide({ isOpen, setIsOpen }: Props) {
     clearError();
   }, [setIsOpen, clearError]);
 
-  const handleCheckout = useCallback(async () => {
-    if (isEmpty) return;
-
-    setIsCheckingOut(true);
-    try {
-      // In a real app, you'd navigate to checkout instead of clearing cart
-      // For demo purposes, we'll just show a success message
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
-      alert("Proceeding to checkout page...");
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert("Failed to process checkout. Please try again.");
-    } finally {
-      setIsCheckingOut(false);
-    }
-  }, [isEmpty, setIsOpen]);
-
   const handleQuantityUpdate = useCallback(
     async (cartItemId: number, newQty: number) => {
       if (newQty < 0) return;
@@ -91,6 +73,7 @@ export default function CartSlide({ isOpen, setIsOpen }: Props) {
     },
     [updateQuantity]
   );
+  const navigate = useNavigate(); // Call the hook at the top level
 
   const handleRemoveItem = useCallback(
     async (cartItemId: number) => {
@@ -415,11 +398,11 @@ export default function CartSlide({ isOpen, setIsOpen }: Props) {
 
               {/* Checkout Button */}
               <button
-                onClick={handleCheckout}
-                disabled={isCheckingOut || loading || isEmpty}
+                onClick={() => navigate("/cart")}
+                disabled={loading || isEmpty}
                 className="w-full flex items-center justify-center px-6 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
               >
-                {isCheckingOut ? (
+                {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
                     Processing...
