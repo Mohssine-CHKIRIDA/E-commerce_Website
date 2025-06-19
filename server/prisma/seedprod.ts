@@ -221,9 +221,9 @@ async function getOrCreateColor({ name, hex }: { name: string; hex: string }) {
 
 async function getOrCreateSize(value: number) {
   return prisma.size.upsert({
-    where: { value },
+    where: { value: value.toString() },
     update: {},
-    create: { value },
+    create: { value:value.toString() },
   });
 }
 
