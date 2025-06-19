@@ -32,7 +32,7 @@ export default function ProductReviewP({ product }: ProductReviewProps) {
       name: product.name,
       price: product.price,
       imageUrl: product.imageUrl,
-      Instock: product.inStock,
+      inStock: product.inStock,
       quantity: quantity,
     });
   };

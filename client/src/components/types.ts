@@ -301,7 +301,7 @@ export async function convertToProductInput(product: Partial<ProductEdit>): Prom
       if (typeof size === "number") {
         return size;
       } else if (typeof size === "string") {
-        return size.trim();
+        return (size as string).trim();
       } else if (typeof size === "object" && size !== null && "value" in size) {
         if (typeof size.value === "string") {
           return size.value.trim();

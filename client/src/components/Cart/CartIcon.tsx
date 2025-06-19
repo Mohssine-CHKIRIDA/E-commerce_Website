@@ -10,7 +10,7 @@ export default function Cart() {
 
   const count = cartItems.length;
 
-  const hoverTimeout = useRef<number | null>(null);
+  const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = () => {
     hoverTimeout.current = setTimeout(() => {
