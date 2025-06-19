@@ -171,11 +171,11 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
               <strong>Reviews:</strong> {selectedProduct.numReviews}
             </p>
             <div className="flex gap-2 mt-2">
-              {selectedProduct.colors?.map((c) => (
-                <div key={c.id} className="flex items-center gap-1">
-                  <span>{c.name}</span>
+              {selectedProduct.productColors?.map((c) => (
+                <div key={c.colorId} className="flex items-center gap-1">
+                  <span>{c.color.name}</span>
                   <div
-                    style={{ backgroundColor: c.hex }}
+                    style={{ backgroundColor: c.color.hex }}
                     className="w-4 h-4 rounded border"
                   />
                 </div>

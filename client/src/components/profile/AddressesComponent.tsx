@@ -62,7 +62,7 @@ const AddressesComponent: React.FC<AddressesComponentProps> = ({
     if (type === "checkbox" && e.target instanceof HTMLInputElement) {
       setFormData((prev) => ({
         ...prev,
-        [name]: e.target.checked,
+        [name]: (e.target as HTMLInputElement).checked,
       }));
     } else {
       setFormData((prev) => ({

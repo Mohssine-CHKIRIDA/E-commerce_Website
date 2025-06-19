@@ -16,7 +16,7 @@ export default function Productcard({ product }: CardProps) {
       name: product.name,
       price: product.price,
       imageUrl: product.imageUrl,
-      Instock: product.inStock,
+      inStock: product.inStock,
       quantity: 1,
     });
   };
